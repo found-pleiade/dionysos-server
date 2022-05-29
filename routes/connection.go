@@ -1,44 +1,58 @@
 package routes
 
 import (
-	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
-	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
-//Client Database instance
-var Client *mongo.Client = DBinstance()
-
-//DBinstance func
-func DBinstance() *mongo.Client {
-	mongoDb := os.Getenv("MONGO_URL")
-
-	client, err := mongo.NewClient(options.Client().ApplyURI(mongoDb))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-
-	defer cancel()
-	err = client.Connect(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Connected to MongoDB!")
-
-	return client
+type Neo4jConfiguration struct {
+	Url      string
+	Username string
+	Password string
+	Database string
 }
 
-//OpenCollection is a  function makes a connection with a collection in the database
-func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection {
+func newDriverFromConfig() neo4j.Driver {
+	// Configuring database
+	configuration := parseConfiguration()
+	//Client Database instance
+	driver, err := configuration.newDriver()
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		fmt.Println("Connected to Neo4j driver !")
+	}
+	defer unsafeClose(driver)
+	return driver
+}
 
-	var collection *mongo.Collection = client.Database("main").Collection(collectionName)
+func (nc Neo4jConfiguration) newDriver() (neo4j.Driver, error) {
+	return neo4j.NewDriver(nc.Url, neo4j.BasicAuth(nc.Username, nc.Password, ""))
+}
 
-	return collection
+func parseConfiguration() *Neo4jConfiguration {
+	return &Neo4jConfiguration{
+		Url:      lookupEnvOrGetDefault("NEO4J_URI", "http://localhost:7474/"),
+		Username: lookupEnvOrGetDefault("NEO4J_USER", "dionysos"),
+		Password: lookupEnvOrGetDefault("NEO4J_PASSWORD", "dionysos"),
+		Database: lookupEnvOrGetDefault("NEO4J_DATABASE", "dionysos"),
+	}
+}
+
+func lookupEnvOrGetDefault(key string, defaultValue string) string {
+	if env, found := os.LookupEnv(key); !found {
+		return defaultValue
+	} else {
+		return env
+	}
+}
+
+func unsafeClose(closeable io.Closer) {
+	if err := closeable.Close(); err != nil {
+		log.Fatal(fmt.Errorf("could not close resource: %w", err))
+	}
 }
