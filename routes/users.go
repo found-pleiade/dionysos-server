@@ -1,10 +1,6 @@
 package routes
 
-import (
-	"github.com/go-playground/validator/v10"
-)
-
-var validate = validator.New()
+// var validate = validator.New()
 
 // var userCollection *mongo.Collection = OpenCollection(Client, "users")
 
