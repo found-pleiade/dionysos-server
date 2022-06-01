@@ -9,6 +9,25 @@ import (
 )
 
 func main() {
+	_, err := getNeoDriver()
+	if err != nil {
+		panic(err)
+	}
+
+	router := gin.Default()
+
+	router.GET("/ping", getping)
+	err = router.Run(":8080")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func getping(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"response": "pong"})
+}
+
+func getNeoDriver() (neo4j.Driver, error) {
 	neo4jURI, found := os.LookupEnv("NEO4J_URI")
 	if !found {
 		panic("NEO4J_URI not set")
@@ -22,22 +41,6 @@ func main() {
 		panic("NEO4J_PASSWORD not set")
 	}
 
-	driver(neo4jURI, neo4j.BasicAuth(neo4jUsername, neo4jPassword, ""))
-
-	router := gin.Default()
-
-	router.GET("/ping", getping)
-	router.Run(":8080")
-}
-
-func getping(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"response": "pong"})
-}
-
-func driver(target string, token neo4j.AuthToken) neo4j.Driver {
-	result, err := neo4j.NewDriver(target, token)
-	if err != nil {
-		panic(err)
-	}
-	return result
+	driver, err := neo4j.NewDriver(neo4jURI, neo4j.BasicAuth(neo4jUsername, neo4jPassword, ""))
+	return driver, err
 }
