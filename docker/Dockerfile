@@ -8,7 +8,7 @@ COPY . .
 RUN CGO_ENABLED=0 go build -o dionysos-server
 
 # Prod stage
-FROM alpine as image-prod
+FROM alpine:3.16.0 as image-prod
 COPY --from=builder /app/dionysos-server /
 EXPOSE 8080
 CMD ["/dionysos-server"]
