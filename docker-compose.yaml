@@ -1,4 +1,5 @@
-version: '3.1'
+---
+version: '4'
 
 services:
   api:
@@ -7,30 +8,21 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: image-prod
-    environment:
-      MONGO_URL: ${MONGO_URL}
     ports:
       - 8080:8080
-    depends_on:
-      - mongo
-
-  mongo:
-    container_name: mongo
-    image: mongo
-    restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - NEO4J_URI=${NEO4J_URI}
+      # - GIN_MODE=release        # Use for production environnement
+    depends_on:
+      - neo4j
 
-  mongo-express:
-    container_name: mongo-express
-    image: mongo-express
-    restart: always
+  neo4j:
+    container_name: neo4j
+    image: neo4j:4.4.7
     ports:
-      - 8081:8081
+      - 7474:7474 # Use for dev env
+      - 7687:7687
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD}
-      ME_CONFIG_MONGODB_URL: ${MONGO_URL}
-    depends_on:
-      - mongo
+      - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
