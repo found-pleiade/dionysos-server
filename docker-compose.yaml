@@ -1,4 +1,5 @@
-version: '3.3'
+---
+version: '4'
 
 services:
   api:
@@ -13,14 +14,15 @@ services:
       - NEO4J_USERNAME=${NEO4J_USERNAME}
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
       - NEO4J_URI=${NEO4J_URI}
+      # - GIN_MODE=release        # Use for production environnement
     depends_on:
       - neo4j
 
   neo4j:
+    container_name: neo4j
     image: neo4j:4.4.7
-    restart: always
     ports:
-      - 7474:7474
+      - 7474:7474 # Use for dev env
       - 7687:7687
     environment:
-      - NEO4J_AUTH=${NEO4J_AUTH}
+      - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
