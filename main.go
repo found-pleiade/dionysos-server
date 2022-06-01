@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	neo4jUri, found := os.LookupEnv("NEO4J_URI")
+	neo4jURI, found := os.LookupEnv("NEO4J_URI")
 	if !found {
 		panic("NEO4J_URI not set")
 	}
@@ -22,7 +22,7 @@ func main() {
 		panic("NEO4J_PASSWORD not set")
 	}
 
-	driver(neo4jUri, neo4j.BasicAuth(neo4jUsername, neo4jPassword, ""))
+	driver(neo4jURI, neo4j.BasicAuth(neo4jUsername, neo4jPassword, ""))
 
 	router := gin.Default()
 
