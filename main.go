@@ -30,15 +30,15 @@ func getping(c *gin.Context) {
 func getNeoDriver() (neo4j.Driver, error) {
 	neo4jURI, found := os.LookupEnv("NEO4J_URI")
 	if !found {
-		panic("NEO4J_URI not set")
+		neo4jURI = "bolt://localhost"
 	}
 	neo4jUsername, found := os.LookupEnv("NEO4J_USERNAME")
 	if !found {
-		panic("NEO4J_USERNAME not set")
+		neo4jUsername = "neo4j"
 	}
 	neo4jPassword, found := os.LookupEnv("NEO4J_PASSWORD")
 	if !found {
-		panic("NEO4J_PASSWORD not set")
+		neo4jPassword = "whynot123"
 	}
 
 	driver, err := neo4j.NewDriver(neo4jURI, neo4j.BasicAuth(neo4jUsername, neo4jPassword, ""))
