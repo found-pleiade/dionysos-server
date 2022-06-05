@@ -1,6 +1,8 @@
 ---
-version: '3.6'
+version: '3.9'
 
+networks:
+  dionysos:
 services:
   api:
     container_name: api
@@ -10,19 +12,22 @@ services:
       target: image-prod
     ports:
       - 8080:8080
+    networks:
+      - dionysos
     environment:
-      - NEO4J_USERNAME=${NEO4J_USERNAME}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
-      - NEO4J_URI=${NEO4J_URI}
-      # - GIN_MODE=release        # Use for production environnement
+      - ARANGO_PASSWORD=${ARANGO_PASSWORD}
+      - ARANGO_URI=${ARANGO_URI}
+      - ARANGO_USERNAME=${ARANGO_USERNAME}
     depends_on:
-      - neo4j
+      - arangodb
 
-  neo4j:
-    container_name: neo4j
-    image: neo4j:4.4.7
+  arangodb:
+    container_name: arangodb
+    image: arangodb/arangodb
+    command: --server.endpoint tcp://0.0.0.0:8529
     ports:
-      - 7474:7474 # Use for dev env
-      - 7687:7687
+      - 8529:8529
+    networks:
+      - dionysos
     environment:
-      - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
+      - ARANGO_ROOT_PASSWORD=${ARANGO_PASSWORD}
