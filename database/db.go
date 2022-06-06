@@ -56,7 +56,7 @@ func GetClient() driver.Client {
 	// Wait for the database to be ready
 	_, err = client.Version(context.TODO())
 	for err != nil {
-		fmt.Printf("Wait for database to be ready\n")
+		fmt.Printf("Waiting for the database to be ready\n")
 		time.Sleep(time.Second * 5)
 		_, err = client.Version(context.TODO())
 	}
