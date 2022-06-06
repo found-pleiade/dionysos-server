@@ -12,6 +12,7 @@ func main() {
 
 	router.GET("/version", getVersion)
 	router.POST("/users/", routes.CreateUser)
+	router.GET("/users/:id", routes.GetUser)
 	err := router.Run(":8080")
 	if err != nil {
 		panic(err)
