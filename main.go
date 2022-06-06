@@ -15,10 +15,13 @@ func main() {
 	router.GET("/users/:id", routes.GetUser)
 	router.PATCH("/users/:id", routes.UpdateUser)
 	router.DELETE("/users/:id", routes.DeleteUser)
+<<<<<<< HEAD
 	router.POST("/rooms/", routes.CreateRoom)
 	router.GET("/rooms/:id", routes.GetRoom)
 	router.PATCH("/rooms/:id", routes.UpdateRoom)
 	router.DELETE("/rooms/:id", routes.DeleteRoom)
+=======
+>>>>>>> dd476d1 (Add methods to update and delete user)
 	err := router.Run(":8080")
 	if err != nil {
 		panic(err)
