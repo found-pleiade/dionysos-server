@@ -7,4 +7,4 @@ import (
 )
 
 // db is the database used by the api accross all routes
-var db driver.Database = database.GetDatabase("dionysos")
+var db driver.Database = database.GetDatabase("dionysos") //nolint:deadcode,unused

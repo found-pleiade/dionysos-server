@@ -70,12 +70,12 @@ func GetDatabase(name string) (db driver.Database) {
 	client := GetClient()
 
 	// Check if the database exists and create it if it does not
-	db_exists, err := client.DatabaseExists(context.TODO(), name)
+	dbExists, err := client.DatabaseExists(context.TODO(), name)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if db_exists {
+	if dbExists {
 		fmt.Printf("%s db already exists\n", name)
 
 		db, err = client.Database(context.TODO(), name)
@@ -101,12 +101,12 @@ func GetDatabase(name string) (db driver.Database) {
 // SetupCollections takes an array of collections name and creates them if they do not exist
 func SetupCollections(db driver.Database, cols []string) {
 	for _, collection := range cols {
-		coll_exists, err := db.CollectionExists(context.TODO(), collection)
+		collExists, err := db.CollectionExists(context.TODO(), collection)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if coll_exists {
+		if collExists {
 			fmt.Printf("%s collection exists already\n", collection)
 		} else {
 
