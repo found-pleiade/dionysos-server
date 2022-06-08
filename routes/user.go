@@ -3,7 +3,7 @@ package routes
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -19,18 +19,20 @@ func CreateUser(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("Failed to bind JSON: %v", err)
 		return
 	}
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("Failed to access collection: %v", err)
 	}
 
 	meta, err := col.CreateDocument(ctx, user)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not created"})
+		log.Printf("Failed to create document: %v", err)
 		return
 	}
 
@@ -46,13 +48,14 @@ func GetUser(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("Failed to access collection: %v", err)
 	}
 
 	_, err = col.ReadDocument(ctx, id, &result)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not found"})
+		log.Printf("Failed to find document: %v", err)
 		return
 	}
 
@@ -68,12 +71,13 @@ func UpdateUser(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("Failed to bind JSON: %v", err)
 		return
 	}
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("Failed to access collection: %v", err)
 	}
 
 	patch := map[string]interface{}{
@@ -84,6 +88,7 @@ func UpdateUser(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not modified"})
+		log.Printf("Failed to modify document: %v", err)
 		return
 	}
 
@@ -98,13 +103,14 @@ func DeleteUser(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("Failed to access collection: %v", err)
 	}
 
 	meta, err := col.RemoveDocument(ctx, id)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not deleted"})
+		log.Printf("Failed to delete document: %v", err)
 		return
 	}
 
