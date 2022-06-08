@@ -85,6 +85,7 @@ func UpdateUser(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not modified"})
 		log.Printf("Failed to modify user: %v", err)
+		return
 	}
 
 	fmt.Printf("Modified user with key '%s' in collection '%s' in database '%s'\n", meta.Key, col.Name(), db.Name())
