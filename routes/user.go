@@ -52,6 +52,7 @@ func GetUser(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not found"})
 		log.Printf("Failed to read documents: %v", err)
+		return
 	}
 
 	fmt.Printf("Read document with key '%s' in collection '%s' in database '%s'\n", meta.Key, col.Name(), db.Name())
