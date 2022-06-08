@@ -20,12 +20,12 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	col, err := db.Collection(context.TODO(), database.UsersCollection)
+	col, err := db.Collection(context.Background(), database.UsersCollection)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	meta, err := col.CreateDocument(context.TODO(), user)
+	meta, err := col.CreateDocument(context.Background(), user)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not created"})
@@ -41,12 +41,12 @@ func GetUser(c *gin.Context) {
 	var result models.User
 	id := c.Param("id")
 
-	col, err := db.Collection(context.TODO(), database.UsersCollection)
+	col, err := db.Collection(context.Background(), database.UsersCollection)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	_, err = col.ReadDocument(context.TODO(), id, &result)
+	_, err = col.ReadDocument(context.Background(), id, &result)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not found"})
@@ -67,7 +67,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	col, err := db.Collection(context.TODO(), database.UsersCollection)
+	col, err := db.Collection(context.Background(), database.UsersCollection)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -76,7 +76,7 @@ func UpdateUser(c *gin.Context) {
 		"username": user.Username,
 	}
 
-	meta, err := col.UpdateDocument(context.TODO(), id, patch)
+	meta, err := col.UpdateDocument(context.Background(), id, patch)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not modified"})
@@ -91,12 +91,12 @@ func UpdateUser(c *gin.Context) {
 func DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 
-	col, err := db.Collection(context.TODO(), database.UsersCollection)
+	col, err := db.Collection(context.Background(), database.UsersCollection)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	meta, err := col.RemoveDocument(context.TODO(), id)
+	meta, err := col.RemoveDocument(context.Background(), id)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not deleted"})
