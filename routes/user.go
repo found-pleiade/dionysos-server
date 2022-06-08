@@ -33,13 +33,12 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Created document with key '%s' in collection '%s' in database '%s'\n", meta.Key, col.Name(), db.Name())
-
 	c.JSON(http.StatusOK, gin.H{"message": "User created", "id": meta.Key})
 }
 
 // GetUser returns a user from the aganro database
 func GetUser(c *gin.Context) {
+	var result models.User
 	id := c.Param("id")
 
 	col, err := db.Collection(context.TODO(), database.UsersCollection)
@@ -47,16 +46,13 @@ func GetUser(c *gin.Context) {
 		fmt.Println(err)
 	}
 
-	var result models.User
-	meta, err := col.ReadDocument(context.TODO(), id, &result)
+	_, err = col.ReadDocument(context.TODO(), id, &result)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not found"})
 		log.Printf("Failed to read documents: %v", err)
 		return
 	}
-
-	fmt.Printf("Read document with key '%s' in collection '%s' in database '%s'\n", meta.Key, col.Name(), db.Name())
 
 	c.JSON(http.StatusOK, gin.H{"message": "User found", "user": result})
 }
@@ -88,8 +84,6 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Modified user with key '%s' in collection '%s' in database '%s'\n", meta.Key, col.Name(), db.Name())
-
 	c.JSON(http.StatusOK, gin.H{"message": "User modified", "id": meta.Key})
 }
 
@@ -109,8 +103,6 @@ func DeleteUser(c *gin.Context) {
 		log.Printf("Failed to delete user: %v", err)
 		return
 	}
-
-	fmt.Printf("Deleted user with key '%s' in collection '%s' in database '%s'\n", meta.Key, col.Name(), db.Name())
 
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted", "id": meta.Key})
 }
