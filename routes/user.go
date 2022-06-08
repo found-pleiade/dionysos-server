@@ -14,7 +14,7 @@ import (
 
 // CreateUser creates a user in the aganro database
 func CreateUser(c *gin.Context) {
-	ctx, cancelCtx := context.WithTimeout(c, 500*time.Millisecond)
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -41,7 +41,7 @@ func CreateUser(c *gin.Context) {
 
 // GetUser returns a user from the aganro database
 func GetUser(c *gin.Context) {
-	ctx, cancelCtx := context.WithTimeout(c, 500*time.Millisecond)
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 	var result models.User
 	id := c.Param("id")
@@ -64,7 +64,7 @@ func GetUser(c *gin.Context) {
 
 // UpdateUser updates a user in the aganro database
 func UpdateUser(c *gin.Context) {
-	ctx, cancelCtx := context.WithTimeout(c, 500*time.Millisecond)
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 	var user models.User
 	id := c.Param("id")
@@ -97,7 +97,7 @@ func UpdateUser(c *gin.Context) {
 
 // DeleteUser deletes a user in the aganro database
 func DeleteUser(c *gin.Context) {
-	ctx, cancelCtx := context.WithTimeout(c, 500*time.Millisecond)
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 	id := c.Param("id")
 
