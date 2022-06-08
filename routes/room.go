@@ -4,7 +4,6 @@ package routes
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/Brawdunoir/dionysos-server/database"
@@ -29,7 +28,6 @@ func CreateRoom(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Room not created"})
-		log.Printf("Failed to create documents: %v", err)
 		return
 	}
 
@@ -50,7 +48,6 @@ func GetRoom(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Room not found"})
-		log.Printf("Failed to read documents: %v", err)
 		return
 	}
 
