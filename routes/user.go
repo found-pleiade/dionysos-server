@@ -30,6 +30,7 @@ func CreateUser(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not created"})
 		log.Printf("Failed to create documents: %v", err)
+		return
 	}
 
 	fmt.Printf("Created document with key '%s' in collection '%s' in database '%s'\n", meta.Key, col.Name(), db.Name())
