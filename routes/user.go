@@ -4,7 +4,6 @@ package routes
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/Brawdunoir/dionysos-server/database"
@@ -29,7 +28,6 @@ func CreateUser(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not created"})
-		log.Printf("Failed to create documents: %v", err)
 		return
 	}
 
@@ -50,7 +48,6 @@ func GetUser(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not found"})
-		log.Printf("Failed to read documents: %v", err)
 		return
 	}
 
@@ -80,14 +77,13 @@ func UpdateUser(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not modified"})
-		log.Printf("Failed to modify user: %v", err)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User modified", "id": meta.Key})
 }
 
-// DeleteUser creates a user in the aganro database
+// DeleteUser deletes a user in the aganro database
 func DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 
@@ -100,7 +96,6 @@ func DeleteUser(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not deleted"})
-		log.Printf("Failed to delete user: %v", err)
 		return
 	}
 
