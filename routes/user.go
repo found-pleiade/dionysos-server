@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Brawdunoir/dionysos-server/database"
 	"github.com/Brawdunoir/dionysos-server/models"
@@ -13,18 +14,20 @@ import (
 
 // CreateUser creates a user in the aganro database
 func CreateUser(c *gin.Context) {
+	ctx, cancelCtx := context.WithTimeout(c, 500*time.Millisecond)
+	defer cancelCtx()
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	col, err := db.Collection(context.Background(), database.UsersCollection)
+	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	meta, err := col.CreateDocument(context.Background(), user)
+	meta, err := col.CreateDocument(ctx, user)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not created"})
@@ -36,15 +39,17 @@ func CreateUser(c *gin.Context) {
 
 // GetUser returns a user from the aganro database
 func GetUser(c *gin.Context) {
+	ctx, cancelCtx := context.WithTimeout(c, 500*time.Millisecond)
+	defer cancelCtx()
 	var result models.User
 	id := c.Param("id")
 
-	col, err := db.Collection(context.Background(), database.UsersCollection)
+	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	_, err = col.ReadDocument(context.Background(), id, &result)
+	_, err = col.ReadDocument(ctx, id, &result)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not found"})
@@ -56,6 +61,8 @@ func GetUser(c *gin.Context) {
 
 // UpdateUser updates a user in the aganro database
 func UpdateUser(c *gin.Context) {
+	ctx, cancelCtx := context.WithTimeout(c, 500*time.Millisecond)
+	defer cancelCtx()
 	var user models.User
 	id := c.Param("id")
 
@@ -64,7 +71,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	col, err := db.Collection(context.Background(), database.UsersCollection)
+	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -73,7 +80,7 @@ func UpdateUser(c *gin.Context) {
 		"username": user.Username,
 	}
 
-	meta, err := col.UpdateDocument(context.Background(), id, patch)
+	meta, err := col.UpdateDocument(ctx, id, patch)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not modified"})
@@ -85,14 +92,16 @@ func UpdateUser(c *gin.Context) {
 
 // DeleteUser deletes a user in the aganro database
 func DeleteUser(c *gin.Context) {
+	ctx, cancelCtx := context.WithTimeout(c, 500*time.Millisecond)
+	defer cancelCtx()
 	id := c.Param("id")
 
-	col, err := db.Collection(context.Background(), database.UsersCollection)
+	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	meta, err := col.RemoveDocument(context.Background(), id)
+	meta, err := col.RemoveDocument(ctx, id)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not deleted"})
