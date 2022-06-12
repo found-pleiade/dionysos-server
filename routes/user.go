@@ -3,9 +3,11 @@ package routes
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
+	"time"
+
+	driver "github.com/arangodb/go-driver"
 
 	"github.com/Brawdunoir/dionysos-server/database"
 	"github.com/Brawdunoir/dionysos-server/models"
@@ -15,94 +17,116 @@ import (
 // CreateUser creates a user in the aganro database
 func CreateUser(c *gin.Context) {
 	var user models.User
+
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
+	defer cancelCtx()
+
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("Failed to bind JSON: %v", err)
 		return
 	}
 
-	col, err := db.Collection(context.Background(), database.UsersCollection)
+	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		log.Printf("Failed to access collection: %v", err)
+		return
 	}
 
-	meta, err := col.CreateDocument(context.Background(), user)
+	meta, err := col.CreateDocument(ctx, user)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not created"})
-		log.Printf("Failed to create documents: %v", err)
+		log.Printf("Failed to create document: %v", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User created", "id": meta.Key})
+	c.JSON(http.StatusCreated, gin.H{"id": meta.Key})
 }
 
 // GetUser returns a user from the aganro database
 func GetUser(c *gin.Context) {
 	var result models.User
+
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
+	defer cancelCtx()
+
 	id := c.Param("id")
 
-	col, err := db.Collection(context.Background(), database.UsersCollection)
+	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		fmt.Println(err)
-	}
-
-	_, err = col.ReadDocument(context.Background(), id, &result)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not found"})
-		log.Printf("Failed to read documents: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		log.Printf("Failed to access collection: %v", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User found", "user": result})
+	_, err = col.ReadDocument(ctx, id, &result)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+		log.Printf("Failed to find document: %v", err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": result})
 }
 
 // UpdateUser updates a user in the aganro database
 func UpdateUser(c *gin.Context) {
 	var user models.User
+	var newUser models.User
+
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
+	defer cancelCtx()
+
 	id := c.Param("id")
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("Failed to bind JSON: %v", err)
 		return
 	}
 
-	col, err := db.Collection(context.Background(), database.UsersCollection)
+	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		log.Printf("Failed to access collection: %v", err)
+		return
 	}
 
-	patch := map[string]interface{}{
-		"username": user.Username,
-	}
-
-	meta, err := col.UpdateDocument(context.Background(), id, patch)
+	_, err = col.UpdateDocument(driver.WithReturnNew(ctx, &newUser), id, user)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not modified"})
-		log.Printf("Failed to modify user: %v", err)
+		log.Printf("Failed to modify document: %v", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User modified", "id": meta.Key})
+	c.JSON(http.StatusOK, gin.H{"user": newUser})
 }
 
-// DeleteUser creates a user in the aganro database
+// DeleteUser deletes a user in the aganro database
 func DeleteUser(c *gin.Context) {
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
+	defer cancelCtx()
+
 	id := c.Param("id")
 
-	col, err := db.Collection(context.Background(), database.UsersCollection)
+	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		log.Printf("Failed to access collection: %v", err)
+		return
 	}
 
-	meta, err := col.RemoveDocument(context.Background(), id)
+	_, err = col.RemoveDocument(ctx, id)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not deleted"})
-		log.Printf("Failed to delete user: %v", err)
+		log.Printf("Failed to delete document: %v", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User deleted", "id": meta.Key})
+	c.JSON(http.StatusOK, nil)
 }
