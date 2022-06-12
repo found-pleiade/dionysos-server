@@ -25,7 +25,9 @@ func CreateUser(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
+		return
 	}
 
 	meta, err := col.CreateDocument(ctx, user)
@@ -36,7 +38,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User created", "id": meta.Key})
+	c.JSON(http.StatusCreated, gin.H{"id": meta.Key})
 }
 
 // GetUser returns a user from the aganro database
@@ -48,18 +50,20 @@ func GetUser(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
+		return
 	}
 
 	_, err = col.ReadDocument(ctx, id, &result)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not found"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
 		log.Printf("Failed to find document: %v", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User found", "user": result})
+	c.JSON(http.StatusOK, gin.H{"user": result})
 }
 
 // UpdateUser updates a user in the aganro database
@@ -77,7 +81,9 @@ func UpdateUser(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
+		return
 	}
 
 	patch := map[string]interface{}{
@@ -92,7 +98,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User modified", "id": meta.Key})
+	c.JSON(http.StatusOK, gin.H{"id": meta.Key})
 }
 
 // DeleteUser deletes a user in the aganro database
@@ -103,7 +109,9 @@ func DeleteUser(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
+		return
 	}
 
 	meta, err := col.RemoveDocument(ctx, id)
@@ -114,5 +122,5 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User deleted", "id": meta.Key})
+	c.JSON(http.StatusOK, gin.H{"id": meta.Key})
 }
