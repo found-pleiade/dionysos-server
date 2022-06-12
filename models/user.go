@@ -1,6 +1,5 @@
 package models
 
 type User struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
+	Username string `json:"username" binding:"required"`
 }
