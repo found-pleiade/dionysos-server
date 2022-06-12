@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	driver "github.com/arangodb/go-driver"
+
 	"github.com/Brawdunoir/dionysos-server/database"
 	"github.com/Brawdunoir/dionysos-server/models"
 	"github.com/gin-gonic/gin"
@@ -14,9 +16,11 @@ import (
 
 // CreateUser creates a user in the aganro database
 func CreateUser(c *gin.Context) {
+	var user models.User
+
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
-	var user models.User
+
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Printf("Failed to bind JSON: %v", err)
@@ -43,9 +47,11 @@ func CreateUser(c *gin.Context) {
 
 // GetUser returns a user from the aganro database
 func GetUser(c *gin.Context) {
+	var result models.User
+
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
-	var result models.User
+
 	id := c.Param("id")
 
 	col, err := db.Collection(ctx, database.UsersCollection)
@@ -68,9 +74,12 @@ func GetUser(c *gin.Context) {
 
 // UpdateUser updates a user in the aganro database
 func UpdateUser(c *gin.Context) {
+	var user models.User
+	var newUser models.User
+
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
-	var user models.User
+
 	id := c.Param("id")
 
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -86,11 +95,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	patch := map[string]interface{}{
-		"username": user.Username,
-	}
-
-	meta, err := col.UpdateDocument(ctx, id, patch)
+	_, err = col.UpdateDocument(driver.WithReturnNew(ctx, &newUser), id, user)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not modified"})
@@ -98,13 +103,14 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"id": meta.Key})
+	c.JSON(http.StatusOK, gin.H{"user": newUser})
 }
 
 // DeleteUser deletes a user in the aganro database
 func DeleteUser(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
+
 	id := c.Param("id")
 
 	col, err := db.Collection(ctx, database.UsersCollection)
@@ -114,7 +120,7 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	meta, err := col.RemoveDocument(ctx, id)
+	_, err = col.RemoveDocument(ctx, id)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not deleted"})
@@ -122,5 +128,5 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"id": meta.Key})
+	c.JSON(http.StatusOK, nil)
 }
