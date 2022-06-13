@@ -28,5 +28,5 @@ func main() {
 }
 
 func getVersion(c *gin.Context) {
-  c.JSON(http.StatusOK, gin.H{"response": "v0.1.2"})
+	c.JSON(http.StatusOK, gin.H{"response": "v0.1.2"})
 }
