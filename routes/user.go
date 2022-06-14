@@ -74,15 +74,15 @@ func GetUser(c *gin.Context) {
 
 // UpdateUser updates a user in the aganro database
 func UpdateUser(c *gin.Context) {
-	var user models.User
-	var newUser models.User
+	var userUpdate models.UserUpdate
+	var patchedUser models.User
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
 	id := c.Param("id")
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBindJSON(&userUpdate); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Printf("Failed to bind JSON: %v", err)
 		return
@@ -95,7 +95,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	_, err = col.UpdateDocument(driver.WithReturnNew(ctx, &newUser), id, user)
+	_, err = col.UpdateDocument(driver.WithReturnNew(ctx, &patchedUser), id, userUpdate)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not modified"})
@@ -103,7 +103,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": newUser})
+	c.JSON(http.StatusOK, gin.H{"user": patchedUser})
 }
 
 // DeleteUser deletes a user in the aganro database
