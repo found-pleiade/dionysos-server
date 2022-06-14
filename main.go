@@ -1,36 +1,21 @@
 package main
 
 import (
-	"net/http"
+	"os"
 
 	"github.com/Brawdunoir/dionysos-server/routes"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 )
 
+// VERSION as a constant variable
+const VERSION = "0.1.0"
+
 func main() {
-	router := gin.Default()
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"}
-	router.Use(cors.New(config))
+	os.Setenv("VERSION", VERSION)
 
-	router.GET("/version", getVersion)
-	router.POST("/users/", routes.CreateUser)
-	router.GET("/users/:id", routes.GetUser)
-	router.PATCH("/users/:id", routes.UpdateUser)
-	router.DELETE("/users/:id", routes.DeleteUser)
-
-	router.POST("/rooms/", routes.CreateRoom)
-	router.GET("/rooms/:id", routes.GetRoom)
-	router.PATCH("/rooms/:id", routes.UpdateRoom)
-	router.DELETE("/rooms/:id", routes.DeleteRoom)
+	router := routes.SetupRouter()
 
 	err := router.Run(":8080")
 	if err != nil {
 		panic(err)
 	}
-}
-
-func getVersion(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"response": "v0.1.0"})
 }
