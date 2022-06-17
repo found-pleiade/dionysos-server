@@ -88,6 +88,12 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	if isNil := userUpdate == (models.UserUpdate{}); isNil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No data to update"})
+		log.Printf("Failed to bind JSON: No data to update")
+		return
+	}
+
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
