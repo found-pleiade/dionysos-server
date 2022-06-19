@@ -73,17 +73,23 @@ func GetRoom(c *gin.Context) {
 
 // UpdateRoom updates a room in the aganro database
 func UpdateRoom(c *gin.Context) {
-	var room models.Room
-	var newRoom models.Room
+	var roomUpdate models.RoomUpdate
+	var patchedRoom models.Room
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
 	id := c.Param("id")
 
-	if err := c.ShouldBindJSON(&room); err != nil {
+	if err := c.ShouldBindJSON(&roomUpdate); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Printf("Failed to bind JSON: %v", err)
+		return
+	}
+
+	if isNil := roomUpdate == (models.RoomUpdate{}); isNil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No data to update"})
+		log.Printf("Failed to bind JSON: No data to update")
 		return
 	}
 
@@ -94,7 +100,7 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
-	_, err = col.UpdateDocument(driver.WithReturnNew(ctx, &newRoom), id, room)
+	_, err = col.UpdateDocument(driver.WithReturnNew(ctx, &patchedRoom), id, roomUpdate)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Room not modified"})
@@ -102,7 +108,7 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"room": newRoom})
+	c.JSON(http.StatusOK, gin.H{"room": patchedRoom})
 }
 
 // DeleteRoom deletes a room in the aganro database
