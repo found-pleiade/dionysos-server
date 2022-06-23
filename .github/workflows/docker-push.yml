@@ -1,9 +1,11 @@
 ---
-name: Docker Build and Push Registry
+name: Docker Build and Push
 
 on:
   push:
     branches: [main]
+    tags:
+      - "v*.*.*"
 
 env:
   IMAGE_NAME: brawdunoir/dionysos-server
@@ -20,8 +22,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v2
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v2
       - name: Log into Docker Hub
@@ -34,11 +34,18 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.IMAGE_NAME }}
-          tags: ${{ github.ref_name }}
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Deploy
