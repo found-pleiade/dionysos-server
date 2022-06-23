@@ -55,7 +55,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Sign the container image
-        run: cosign sign --key cosign.key ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: cosign sign ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
       - name: Deploy
         uses: appleboy/ssh-action@v0.1.4
         with:
