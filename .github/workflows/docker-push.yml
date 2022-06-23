@@ -54,6 +54,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Sign the container image
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: cosign sign --key cosign.key ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
       - name: Deploy
         uses: appleboy/ssh-action@v0.1.4
         with:
@@ -62,7 +66,3 @@ jobs:
           username: ${{secrets.USER}}
           key: ${{secrets.PRIVATE_SSH_KEY}}
           script: ${{secrets.SCRIPT}}
-      - name: Sign the container image
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        run: cosign sign ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
