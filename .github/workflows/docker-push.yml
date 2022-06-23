@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v2
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v2
       - name: Log into Docker Hub
@@ -42,6 +44,7 @@ jobs:
             type=semver,pattern={{major}}
             type=sha
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v3
         with:
           context: .
@@ -57,3 +60,7 @@ jobs:
           username: ${{secrets.USER}}
           key: ${{secrets.PRIVATE_SSH_KEY}}
           script: ${{secrets.SCRIPT}}
+      - name: Sign the container image
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: cosign sign ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
