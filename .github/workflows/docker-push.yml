@@ -3,7 +3,7 @@ name: Docker Build and Push
 
 on:
   push:
-    branches: [main, docker-push-patch-2]
+    branches: [main]
     tags:
       - "v*.*.*"
 
