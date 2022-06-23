@@ -57,7 +57,7 @@ jobs:
       - name: Sign the container image
         env:
           COSIGN_PASSWORD: ${{ env.COSIGN_PASSWORD }}
-        run: cosign sign ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+        run: cosign sign --key cosign.key ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
       - name: Deploy
         uses: appleboy/ssh-action@v0.1.4
         with:
