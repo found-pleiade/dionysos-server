@@ -38,6 +38,7 @@ jobs:
           images: ${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
@@ -49,19 +50,19 @@ jobs:
           context: .
           file: ./docker/Dockerfile
           target: image-prod
+          push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Sign the container image
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: cosign sign --key cosign.key ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
       - name: Deploy
         uses: appleboy/ssh-action@v0.1.4
-        if: ${{ github.ref == 'refs/heads/dev' }}
         with:
           host: ${{secrets.HOST}}
           port: ${{secrets.PORT}}
           username: ${{secrets.USER}}
           key: ${{secrets.PRIVATE_SSH_KEY}}
           script: ${{secrets.SCRIPT}}
-      - name: Sign the container image
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        run: cosign sign ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
