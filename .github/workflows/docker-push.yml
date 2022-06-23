@@ -56,7 +56,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
       - name: Deploy
         uses: appleboy/ssh-action@v0.1.4
-        if: ${{ github.ref == 'refs/heads/dev' }}
         with:
           host: ${{secrets.HOST}}
           port: ${{secrets.PORT}}
