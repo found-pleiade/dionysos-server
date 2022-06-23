@@ -61,7 +61,3 @@ jobs:
           username: ${{secrets.USER}}
           key: ${{secrets.PRIVATE_SSH_KEY}}
           script: ${{secrets.SCRIPT}}
-      - name: Sign the container image
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        run: cosign sign ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
