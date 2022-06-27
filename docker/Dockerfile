@@ -7,7 +7,6 @@ RUN go mod download
 FROM cache as image-test
 COPY . ./
 ENV GIN_MODE=release
-ENTRYPOINT ["tail", "-f", "/dev/null"]
 
 # Dev stage
 FROM cache as image-dev
