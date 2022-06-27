@@ -1,0 +1,31 @@
+---
+version: '3.5'
+
+networks:
+  dionysos:
+services:
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: image-test
+    ports:
+      - 8080:8080
+    networks:
+      - dionysos
+    environment:
+      - ARANGO_PASSWORD=${ARANGO_PASSWORD}
+      - ARANGO_URI=${ARANGO_URI}
+      - ARANGO_USERNAME=${ARANGO_USERNAME}
+    depends_on:
+      - arangodb
+
+  arangodb:
+    container_name: arangodb
+    image: arangodb/arangodb
+    command: --server.endpoint tcp://0.0.0.0:8529
+    networks:
+      - dionysos
+    environment:
+      - ARANGO_ROOT_PASSWORD=${ARANGO_PASSWORD}

@@ -3,6 +3,12 @@ WORKDIR /app
 COPY go.* ./
 RUN go mod download
 
+# Test stage
+FROM cache as image-test
+COPY . ./
+ENV GIN_MODE=release
+ENTRYPOINT ["tail", "-f", "/dev/null"]
+
 # Dev stage
 FROM cache as image-dev
 COPY . ./
