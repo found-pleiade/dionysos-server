@@ -9,9 +9,7 @@ import (
 )
 
 // SetupRouter sets up the router
-func SetupRouter() *gin.Engine {
-	router := gin.Default()
-
+func SetupRouter(router *gin.Engine) *gin.Engine {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:3000"}
 	router.Use(cors.New(config))
