@@ -28,7 +28,7 @@ func CreateRoom(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.RoomsCollection)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
 		return
 	}
@@ -36,7 +36,7 @@ func CreateRoom(c *gin.Context) {
 	meta, err := col.CreateDocument(ctx, room)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Room not created"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not created"})
 		log.Printf("Failed to create document: %v", err)
 		return
 	}
@@ -55,7 +55,7 @@ func GetRoom(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.RoomsCollection)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
 		return
 	}
@@ -63,7 +63,7 @@ func GetRoom(c *gin.Context) {
 	_, err = col.ReadDocument(ctx, id, &result)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Room not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		log.Printf("Failed to get document: %v", err)
 		return
 	}
@@ -95,7 +95,7 @@ func UpdateRoom(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.RoomsCollection)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
 		return
 	}
@@ -103,7 +103,7 @@ func UpdateRoom(c *gin.Context) {
 	_, err = col.UpdateDocument(driver.WithReturnNew(ctx, &patchedRoom), id, roomUpdate)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Room not modified"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
 		log.Printf("Failed to modify document: %v", err)
 		return
 	}
@@ -120,7 +120,7 @@ func DeleteRoom(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.RoomsCollection)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
 		return
 	}
@@ -128,7 +128,7 @@ func DeleteRoom(c *gin.Context) {
 	_, err = col.RemoveDocument(ctx, id)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Room not deleted"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not deleted"})
 		log.Printf("Failed to delete document: %v", err)
 		return
 	}
