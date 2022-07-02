@@ -29,6 +29,6 @@ services:
     networks:
       - dionysos
     volumes:
-      - /tmp/arangodb:/var/lib/arangodb3
+      - /tmp/arangodb-${RANDOM}:/var/lib/arangodb3
     environment:
       - ARANGO_ROOT_PASSWORD=${ARANGO_PASSWORD}
