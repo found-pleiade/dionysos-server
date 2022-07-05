@@ -19,9 +19,12 @@ func (c CreateResponseUser) KeyCreated(body []byte) (string, error) {
 	return c.ID, err
 }
 
+var url = "/users/"
+var createRequest = utils.Request{Method: http.MethodPost, Url: url, Body: `{"username":"test"}`}
+
 // TestCreateUser tests the CreateUser function.
 func TestCreateUser(t *testing.T) {
-	method, url := http.MethodPost, "/users/"
+	method := http.MethodPost
 
 	test := utils.TestCreate{
 		SubTests: []utils.SubTest{
@@ -36,10 +39,10 @@ func TestCreateUser(t *testing.T) {
 
 // TestGetUser test the GetUser function.
 func TestGetUser(t *testing.T) {
-	method, url := http.MethodGet, "/users/"
+	method := http.MethodGet
 
 	test := utils.TestRUD{
-		CreateRequest:  utils.Request{Method: http.MethodPost, Url: url, Body: `{"username":"test"}`},
+		CreateRequest:  createRequest,
 		CreateResponse: CreateResponseUser{},
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, Url: url}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"user":{.+}}`},
