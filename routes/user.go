@@ -104,9 +104,15 @@ func UpdateUser(c *gin.Context) {
 	_, err = col.UpdateDocument(driver.WithReturnNew(ctx, &patchedUser), id, userUpdate)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not modified"})
-		log.Printf("Failed to modify document: %v", err)
-		return
+		if driver.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			log.Printf("Failed to find document: %v", err)
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not modified"})
+			log.Printf("Failed to modify document: %v", err)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"user": patchedUser})
