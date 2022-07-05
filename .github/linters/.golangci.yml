@@ -6,8 +6,24 @@
 #########################
 
 # configure golangci-lint
-# see https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
+# https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
 linters:
   enable-all: true
   disable:
     - typecheck
+    - exhaustivestruct
+    - interfacer
+    - maligned
+    - golint
+    - scopelint
+    # disabled because of go1.18
+    - bodyclose
+    - contextcheck
+    - nilerr
+    - noctx
+    - rowserrcheck
+    - sqlclosecheck
+    - structcheck
+    - tparallel
+    - unparam
+    - wastedassign
