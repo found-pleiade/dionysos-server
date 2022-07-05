@@ -51,3 +51,21 @@ func TestGetUser(t *testing.T) {
 	}
 	test.Run(t)
 }
+
+// TestUpdateUser test the UpdateUser function.
+func TestUpdateUser(t *testing.T) {
+	method := http.MethodPatch
+
+	test := utils.TestRUD{
+		CreateRequest:  createRequest,
+		CreateResponse: CreateResponseUser{},
+		SubTests: []utils.SubTest{
+			{Name: "Success", Request: utils.Request{Method: method, Url: url, Body: `{"username":"test2"}`}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"user":{.+}}`},
+			{Name: "Empty Body", Request: utils.Request{Method: method, Url: url, Body: ``}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Bad username key", Request: utils.Request{Method: method, Url: url, Body: `{"wrongkey":"test2"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Bad username value", Request: utils.Request{Method: method, Url: url, Body: `{"username":""}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Not found", Request: utils.Request{Method: method, Url: url + "0", Body: `{"username":"test2"}`}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
+		},
+	}
+	test.Run(t)
+}
