@@ -1,4 +1,3 @@
-//nolint:typecheck
 package routes
 
 import (
