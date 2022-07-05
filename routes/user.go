@@ -135,9 +135,15 @@ func DeleteUser(c *gin.Context) {
 	_, err = col.RemoveDocument(ctx, id)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not deleted"})
-		log.Printf("Failed to delete document: %v", err)
-		return
+		if driver.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			log.Printf("Failed to find document: %v", err)
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not deleted"})
+			log.Printf("Failed to delete document: %v", err)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, nil)
