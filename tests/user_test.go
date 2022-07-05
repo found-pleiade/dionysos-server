@@ -69,3 +69,18 @@ func TestUpdateUser(t *testing.T) {
 	}
 	test.Run(t)
 }
+
+// TestDeleteUser test the DeleteUser function.
+func TestDeleteUser(t *testing.T) {
+	method := http.MethodDelete
+
+	test := utils.TestRUD{
+		CreateRequest:  createRequest,
+		CreateResponse: CreateResponseUser{},
+		SubTests: []utils.SubTest{
+			{Name: "Success", Request: utils.Request{Method: method, Url: url}, ResponseCode: http.StatusOK, ResponseBodyRegex: ``},
+			{Name: "Not found", Request: utils.Request{Method: method, Url: url + "0"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
+		},
+	}
+	test.Run(t)
+}
