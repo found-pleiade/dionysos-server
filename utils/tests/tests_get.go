@@ -1,33 +1,28 @@
 package utils
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/go-playground/assert/v2"
 )
 
-type ResponseCreate struct {
-	ID string `json:"id"`
-}
-
 // TestGet struct to factorize code inside a single feature test.
 type TestGet struct {
-	CreateRequest Request
-	SubTests      []SubTest
+	CreateRequest  Request
+	CreateResponse ICreateResponse
+	SubTests       []SubTest
 }
 
 // Runs a series of tests for a Get type endpoint.
 func (test TestGet) Run(t *testing.T) {
 	disableLogs()
 
-	// First create the ressource and get its ID.
-	var created ResponseCreate
 	w, err := executeRequest(test.CreateRequest.Method, test.CreateRequest.Url, test.CreateRequest.Body)
 	if err != nil {
 		t.Error(err)
 	}
-	err = json.Unmarshal(w.Body.Bytes(), &created)
+
+	key, err := test.CreateResponse.KeyCreated(w.Body.Bytes())
 	if err != nil {
 		t.Error(err)
 	}
@@ -35,7 +30,7 @@ func (test TestGet) Run(t *testing.T) {
 	// Then run the tests.
 	for _, subtest := range test.SubTests {
 		t.Run(subtest.Name, func(t *testing.T) {
-			url := subtest.Request.Url + created.ID
+			url := subtest.Request.Url + key
 
 			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body)
 			if err != nil {
