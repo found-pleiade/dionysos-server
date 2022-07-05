@@ -8,22 +8,94 @@
 # configure golangci-lint
 # https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
 linters:
-  enable-all: true
-  disable:
-    - typecheck
-    - exhaustivestruct
-    - interfacer
-    - maligned
-    - golint
-    - scopelint
+  disable-all: true
+  # Enable specific linter
+  # https://golangci-lint.run/usage/linters/#enabled-by-default-linters
+  enable:
+    - asciicheck
+    - bidichk
+    - containedctx
+    - cyclop
+    - deadcode
+    - decorder
+    - depguard
+    - dogsled
+    - dupl
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - execinquery
+    - exhaustive
+    - exhaustruct
+    - exportloopref
+    - forbidigo
+    - forcetypeassert
+    - funlen
+    - gci
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - goerr113
+    - gofmt
+    - gofumpt
+    - goheader
+    - goimports
+    - gomnd
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - grouper
+    - ifshort
+    - importas
+    - ineffassign
+    - ireturn
+    - lll
+    - maintidx
+    - makezero
+    - misspell
+    - nakedret
+    - nestif
+    - nilnil
+    - nlreturn
+    - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
+    - paralleltest
+    - prealloc
+    - predeclared
+    - promlinter
+    - revive
+    - staticcheck
+    - stylecheck
+    - tagliatelle
+    - tenv
+    - testpackage
+    - thelper
+    - unconvert
+    - unused
+    - varcheck
+    - varnamelen
+    - whitespace
+    - wrapcheck
+    - wsl
     # disabled because of go1.18
-    - bodyclose
-    - contextcheck
-    - nilerr
-    - noctx
-    - rowserrcheck
-    - sqlclosecheck
-    - structcheck
-    - tparallel
-    - unparam
-    - wastedassign
+    # - bodyclose
+    # - contextcheck
+    # - nilerr
+    # - noctx
+    # - rowserrcheck
+    # - sqlclosecheck
+    # - structcheck
+    # - tparallel
+    # - unparam
+    # - wastedassign
