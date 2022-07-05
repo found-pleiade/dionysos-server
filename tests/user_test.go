@@ -38,7 +38,7 @@ func TestCreateUser(t *testing.T) {
 func TestGetUser(t *testing.T) {
 	method, url := http.MethodGet, "/users/"
 
-	test := utils.TestGet{
+	test := utils.TestRUD{
 		CreateRequest:  utils.Request{Method: http.MethodPost, Url: url, Body: `{"username":"test"}`},
 		CreateResponse: CreateResponseUser{},
 		SubTests: []utils.SubTest{

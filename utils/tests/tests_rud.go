@@ -6,15 +6,15 @@ import (
 	"github.com/go-playground/assert/v2"
 )
 
-// TestGet struct to factorize code inside a single feature test.
-type TestGet struct {
+// TestRUD (Read, Update, Delete) struct to factorize code inside a single feature test.
+type TestRUD struct {
 	CreateRequest  Request
 	CreateResponse ICreateResponse
 	SubTests       []SubTest
 }
 
 // Runs a series of tests for a Get type endpoint.
-func (test TestGet) Run(t *testing.T) {
+func (test TestRUD) Run(t *testing.T) {
 	disableLogs()
 
 	w, err := executeRequest(test.CreateRequest.Method, test.CreateRequest.Url, test.CreateRequest.Body)
