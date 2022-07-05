@@ -14,11 +14,17 @@ import (
 
 var router = routes.SetupRouter(gin.New())
 
-type Test interface {
+// ITest interface to run tests.
+type ITest interface {
 	Run(t *testing.T)
 }
 
-// SubTest to be send to the router during series of tests.
+// ICreateResponse allows to map a Create request and retrieve the key for further tests.
+type ICreateResponse interface {
+	KeyCreated([]byte) (string, error)
+}
+
+// SubTest is an atomic test that include a request and its intended response.
 type SubTest struct {
 	Name              string
 	Request           Request
@@ -26,6 +32,7 @@ type SubTest struct {
 	ResponseBodyRegex interface{}
 }
 
+// Request simple request to be send to the router.
 type Request struct {
 	Method string
 	Url    string

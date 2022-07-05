@@ -1,11 +1,23 @@
 package tests
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 
 	utils "github.com/Brawdunoir/dionysos-server/utils/tests"
 )
+
+// CreateResponseUser allows to map the response of the CreateUser request and get the key for further requests.
+type CreateResponseUser struct {
+	ID string `json:"id"`
+}
+
+func (c CreateResponseUser) KeyCreated(body []byte) (string, error) {
+	err := json.Unmarshal(body, &c)
+
+	return c.ID, err
+}
 
 // TestCreateUser tests the CreateUser function.
 func TestCreateUser(t *testing.T) {
@@ -27,7 +39,8 @@ func TestGetUser(t *testing.T) {
 	method, url := http.MethodGet, "/users/"
 
 	test := utils.TestGet{
-		CreateRequest: utils.Request{Method: http.MethodPost, Url: url, Body: `{"username":"test"}`},
+		CreateRequest:  utils.Request{Method: http.MethodPost, Url: url, Body: `{"username":"test"}`},
+		CreateResponse: CreateResponseUser{},
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, Url: url}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"user":{.+}}`},
 			{Name: "Not found", Request: utils.Request{Method: method, Url: url + "0"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
