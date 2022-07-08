@@ -10,8 +10,7 @@ import (
 )
 
 // SetupRouter sets up the router
-func SetupRouter() *gin.Engine {
-	router := gin.Default()
+func SetupRouter(router *gin.Engine) *gin.Engine {
 	router.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
 		AllowCredentials: true,
