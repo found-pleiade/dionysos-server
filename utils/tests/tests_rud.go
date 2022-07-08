@@ -18,7 +18,7 @@ type TestRUD struct {
 func (test TestRUD) Run(t *testing.T) {
 	disableLogs()
 
-	w, err := executeRequest(test.CreateRequest.Method, test.CreateRequest.Url, test.CreateRequest.Body)
+	w, err := executeRequest(test.CreateRequest.Method, test.CreateRequest.URL, test.CreateRequest.Body)
 	if err != nil {
 		t.Error(err)
 	}
@@ -31,7 +31,7 @@ func (test TestRUD) Run(t *testing.T) {
 	// Then run the tests.
 	for _, subtest := range test.SubTests {
 		t.Run(subtest.Name, func(t *testing.T) {
-			url := subtest.Request.Url + key
+			url := subtest.Request.URL + key
 
 			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body)
 			if err != nil {
