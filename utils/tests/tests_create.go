@@ -18,7 +18,7 @@ func (test TestCreate) Run(t *testing.T) {
 
 	for _, subtest := range test.SubTests {
 		t.Run(subtest.Name, func(t *testing.T) {
-			w, err := executeRequest(subtest.Request.Method, subtest.Request.Url, subtest.Request.Body)
+			w, err := executeRequest(subtest.Request.Method, subtest.Request.URL, subtest.Request.Body)
 			if err != nil {
 				t.Error(err)
 			}

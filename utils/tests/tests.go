@@ -36,7 +36,7 @@ type SubTest struct {
 // Request simple request to be send to the router.
 type Request struct {
 	Method string
-	Url    string
+	URL    string
 	Body   string
 }
 
