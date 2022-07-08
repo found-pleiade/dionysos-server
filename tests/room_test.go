@@ -30,6 +30,7 @@ func TestCreateRoom(t *testing.T) {
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, URL: roomURL, Body: `{"name":"test"}`}, ResponseCode: http.StatusCreated, ResponseBodyRegex: `{"id":"\d+"}`},
 			{Name: "Empty body", Request: utils.Request{Method: method, URL: roomURL, Body: ``}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Empty json", Request: utils.Request{Method: method, URL: roomURL, Body: `{}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Bad name key", Request: utils.Request{Method: method, URL: roomURL, Body: `{"wrongkey":"test"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Bad name value", Request: utils.Request{Method: method, URL: roomURL, Body: `{"name":""}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 		},
