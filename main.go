@@ -10,9 +10,7 @@ import (
 
 func main() {
 	router := gin.Default()
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"}
-	router.Use(cors.New(config))
+	router.Use(cors.Default())
 
 	router.GET("/version", getVersion)
 	router.POST("/users/", routes.CreateUser)
