@@ -32,7 +32,10 @@ func TestCreateRoom(t *testing.T) {
 			{Name: "Empty body", Request: utils.Request{Method: method, URL: roomURL, Body: ``}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Empty json", Request: utils.Request{Method: method, URL: roomURL, Body: `{}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Bad name key", Request: utils.Request{Method: method, URL: roomURL, Body: `{"wrongkey":"test"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
-			{Name: "Bad name value", Request: utils.Request{Method: method, URL: roomURL, Body: `{"name":""}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Empty name value", Request: utils.Request{Method: method, URL: roomURL, Body: `{"name":""}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Nil name value", Request: utils.Request{Method: method, URL: userURL, Body: `{"name":nil}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Integer name value", Request: utils.Request{Method: method, URL: userURL, Body: `{"name":1}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Object name value", Request: utils.Request{Method: method, URL: userURL, Body: `{"name":{"somekey":"somevalue"}}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 		},
 	}
 	test.Run(t)
@@ -46,7 +49,7 @@ func TestGetRoom(t *testing.T) {
 		CreateRequest:  roomCreateRequest,
 		CreateResponse: CreateResponseRoom{},
 		SubTests: []utils.SubTest{
-			{Name: "Success", Request: utils.Request{Method: method, URL: roomURL}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"room":{.+}}`},
+			{Name: "Success", Request: utils.Request{Method: method, URL: roomURL}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"room":{"name":"test"}}`},
 			{Name: "Not found", Request: utils.Request{Method: method, URL: roomURL + "0"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
 	}
@@ -62,9 +65,14 @@ func TestUpdateRoom(t *testing.T) {
 		CreateResponse: CreateResponseRoom{},
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, URL: roomURL, Body: `{"name":"test2"}`}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"room":{.+}}`},
+			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet, URL: roomURL}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"room":{"name":"test2"}}`},
 			{Name: "Empty Body", Request: utils.Request{Method: method, URL: roomURL, Body: ``}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Empty json", Request: utils.Request{Method: method, URL: roomURL, Body: `{}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Bad name key", Request: utils.Request{Method: method, URL: roomURL, Body: `{"wrongkey":"test2"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
-			{Name: "Bad name value", Request: utils.Request{Method: method, URL: roomURL, Body: `{"name":""}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Empty name value", Request: utils.Request{Method: method, URL: roomURL, Body: `{"name":""}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Nil name value", Request: utils.Request{Method: method, URL: userURL, Body: `{"name":nil}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Integer name value", Request: utils.Request{Method: method, URL: userURL, Body: `{"name":1}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Object name value", Request: utils.Request{Method: method, URL: userURL, Body: `{"name":{"somekey":"somevalue"}}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, URL: roomURL + "0", Body: `{"name":"test2"}`}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
 	}
@@ -80,6 +88,7 @@ func TestDeleteRoom(t *testing.T) {
 		CreateResponse: CreateResponseRoom{},
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, URL: roomURL}, ResponseCode: http.StatusOK, ResponseBodyRegex: ``},
+			{Name: "Correctly deleted", Request: utils.Request{Method: http.MethodGet, URL: roomURL}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, URL: roomURL + "0"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
 	}

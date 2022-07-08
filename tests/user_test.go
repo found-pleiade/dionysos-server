@@ -30,8 +30,12 @@ func TestCreateUser(t *testing.T) {
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":"test"}`}, ResponseCode: http.StatusCreated, ResponseBodyRegex: `{"id":"\d+"}`},
 			{Name: "Empty body", Request: utils.Request{Method: method, URL: userURL, Body: ``}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Empty json", Request: utils.Request{Method: method, URL: userURL, Body: `{}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Bad username key", Request: utils.Request{Method: method, URL: userURL, Body: `{"wrongkey":"test"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
-			{Name: "Bad username value", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":""}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Empty username value", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":""}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Nil username value", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":nil}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Integer username value", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":1}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Object username value", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":{"somekey":"somevalue"}}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 		},
 	}
 	test.Run(t)
@@ -45,7 +49,7 @@ func TestGetUser(t *testing.T) {
 		CreateRequest:  userCreateRequest,
 		CreateResponse: CreateResponseUser{},
 		SubTests: []utils.SubTest{
-			{Name: "Success", Request: utils.Request{Method: method, URL: userURL}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"user":{.+}}`},
+			{Name: "Success", Request: utils.Request{Method: method, URL: userURL}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"user":{"username":"test"}}`},
 			{Name: "Not found", Request: utils.Request{Method: method, URL: userURL + "0"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
 		},
 	}
@@ -61,9 +65,14 @@ func TestUpdateUser(t *testing.T) {
 		CreateResponse: CreateResponseUser{},
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":"test2"}`}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"user":{.+}}`},
+			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet, URL: userURL}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"username":"test2"}`},
 			{Name: "Empty Body", Request: utils.Request{Method: method, URL: userURL, Body: ``}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Empty json", Request: utils.Request{Method: method, URL: userURL, Body: `{}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Bad username key", Request: utils.Request{Method: method, URL: userURL, Body: `{"wrongkey":"test2"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
-			{Name: "Bad username value", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":""}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Empty username value", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":""}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Nil username value", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":nil}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Integer username value", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":1}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
+			{Name: "Object username value", Request: utils.Request{Method: method, URL: userURL, Body: `{"username":{"somekey":"somevalue"}}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, URL: userURL + "0", Body: `{"username":"test2"}`}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
 		},
 	}
@@ -79,6 +88,7 @@ func TestDeleteUser(t *testing.T) {
 		CreateResponse: CreateResponseUser{},
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, URL: userURL}, ResponseCode: http.StatusOK, ResponseBodyRegex: ``},
+			{Name: "Correctly deleted", Request: utils.Request{Method: http.MethodGet, URL: userURL}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, URL: userURL + "0"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
 		},
 	}
