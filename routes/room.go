@@ -103,9 +103,15 @@ func UpdateRoom(c *gin.Context) {
 	_, err = col.UpdateDocument(driver.WithReturnNew(ctx, &patchedRoom), id, roomUpdate)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
-		log.Printf("Failed to modify document: %v", err)
-		return
+		if driver.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+			log.Printf("Failed to find document: %v", err)
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
+			log.Printf("Failed to modify document: %v", err)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"room": patchedRoom})
@@ -128,9 +134,15 @@ func DeleteRoom(c *gin.Context) {
 	_, err = col.RemoveDocument(ctx, id)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not deleted"})
-		log.Printf("Failed to delete document: %v", err)
-		return
+		if driver.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+			log.Printf("Failed to find document: %v", err)
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
+			log.Printf("Failed to modify document: %v", err)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, nil)
