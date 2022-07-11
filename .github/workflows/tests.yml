@@ -9,8 +9,7 @@ on:
 jobs:
   launch-tests:
     runs-on: ubuntu-latest
-    with:
-      context: .
     steps:
+      - uses: actions/checkout@v2
       - name: Run Test Command
         run: docker-compose -f docker-compose_testing.yaml up --build -d && docker-compose exec api go test -v tests/*
