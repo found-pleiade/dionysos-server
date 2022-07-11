@@ -1,0 +1,15 @@
+---
+name: Go Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  launch-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Test Command
+        run: docker-compose -f docker-compose_testing.yaml up --build -d && docker-compose exec -T api go test tests/*
