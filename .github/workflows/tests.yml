@@ -10,6 +10,6 @@ jobs:
   launch-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
       - name: Run Test Command
+        uses: actions/checkout@v3
         run: docker-compose -f docker-compose_testing.yaml up --build -d && docker-compose exec -T api go test tests/*
