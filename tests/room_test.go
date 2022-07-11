@@ -41,7 +41,7 @@ func TestCreateRoom(t *testing.T) {
 	test.Run(t)
 }
 
-// TestGetRoom test the GetRoom function.
+// TestGetRoom tests the GetRoom function.
 func TestGetRoom(t *testing.T) {
 	method := http.MethodGet
 
