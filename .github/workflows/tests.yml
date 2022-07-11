@@ -1,0 +1,19 @@
+# This workflow executes several linters on changed files based on languages used in your code base whenever
+# you push a code or open a pull request.
+#
+# You can adjust the behavior by modifying this file.
+# For more information, see:
+# https://github.com/github/super-linter
+name: Testing Routes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  run-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Test Command
+        run: docker-compose -f docker-compose_testing.yaml up --build -d && docker-compose exec api go test -v tests/*
