@@ -12,7 +12,7 @@ type TestCreate struct {
 	SubTests []SubTest
 }
 
-// Runs a series of tests for a Create type endpoint.
+// Runs a series of tests for the Create type endpoint.
 func (test TestCreate) Run(t *testing.T) {
 	disableLogs()
 

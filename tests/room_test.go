@@ -56,7 +56,7 @@ func TestGetRoom(t *testing.T) {
 	test.Run(t)
 }
 
-// TestUpdateRoom test the UpdateRoom function.
+// TestUpdateRoom tests the UpdateRoom function.
 func TestUpdateRoom(t *testing.T) {
 	method := http.MethodPatch
 

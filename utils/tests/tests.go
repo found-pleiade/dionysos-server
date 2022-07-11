@@ -25,7 +25,7 @@ type ICreateResponse interface {
 	KeyCreated([]byte) (string, error)
 }
 
-// SubTest is an atomic test that include a request and its intended response.
+// SubTest is an atomic test that includes a request and its intended response.
 type SubTest struct {
 	Name              string
 	Request           Request
@@ -33,7 +33,7 @@ type SubTest struct {
 	ResponseBodyRegex interface{}
 }
 
-// Request simple request to be send to the router.
+// Request a simple request to be sent to the router.
 type Request struct {
 	Method string
 	URL    string

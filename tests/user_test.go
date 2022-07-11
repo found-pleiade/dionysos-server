@@ -41,7 +41,7 @@ func TestCreateUser(t *testing.T) {
 	test.Run(t)
 }
 
-// TestGetUser test the GetUser function.
+// TestGetUser tests the GetUser function.
 func TestGetUser(t *testing.T) {
 	method := http.MethodGet
 
@@ -56,7 +56,7 @@ func TestGetUser(t *testing.T) {
 	test.Run(t)
 }
 
-// TestUpdateUser test the UpdateUser function.
+// TestUpdateUser tests the UpdateUser function.
 func TestUpdateUser(t *testing.T) {
 	method := http.MethodPatch
 
@@ -79,7 +79,7 @@ func TestUpdateUser(t *testing.T) {
 	test.Run(t)
 }
 
-// TestDeleteUser test the DeleteUser function.
+// TestDeleteUser tests the DeleteUser function.
 func TestDeleteUser(t *testing.T) {
 	method := http.MethodDelete
 

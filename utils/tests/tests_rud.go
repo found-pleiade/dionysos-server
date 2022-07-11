@@ -14,7 +14,7 @@ type TestRUD struct {
 	SubTests       []SubTest
 }
 
-// Runs a series of tests for a Get type endpoint.
+// Runs a series of tests for the Get type endpoint.
 func (test TestRUD) Run(t *testing.T) {
 	disableLogs()
 
