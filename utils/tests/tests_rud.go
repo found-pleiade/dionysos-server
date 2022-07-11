@@ -23,7 +23,7 @@ func (test TestRUD) Run(t *testing.T) {
 		t.Error(err)
 	}
 
-	key, err := test.CreateResponse.KeyCreated(w.Body.Bytes())
+	uri, err := test.CreateResponse.UriCreated(w.Body.Bytes())
 	if err != nil {
 		t.Error(err)
 	}
@@ -31,7 +31,7 @@ func (test TestRUD) Run(t *testing.T) {
 	// Then run the tests.
 	for _, subtest := range test.SubTests {
 		t.Run(subtest.Name, func(t *testing.T) {
-			url := subtest.Request.URL + key
+			url := uri + subtest.Request.URL
 
 			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body)
 			if err != nil {

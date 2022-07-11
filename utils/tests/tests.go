@@ -22,7 +22,7 @@ type ITest interface {
 
 // ICreateResponse allows to map a Create request and retrieve the key for further tests.
 type ICreateResponse interface {
-	KeyCreated([]byte) (string, error)
+	UriCreated([]byte) (string, error)
 }
 
 // SubTest is an atomic test that includes a request and its intended response.

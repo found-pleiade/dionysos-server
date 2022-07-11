@@ -4,6 +4,7 @@ package routes
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -34,7 +35,7 @@ func CreateRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"uri": "/rooms/" + string(rune(room.ID))})
+	c.JSON(http.StatusCreated, gin.H{"uri": "/rooms/" + fmt.Sprint(room.ID)})
 }
 
 // GetRoom returns a room from the database
@@ -46,7 +47,7 @@ func GetRoom(c *gin.Context) {
 
 	id := c.Param("id")
 
-	err := db.WithContext(ctx).Find(&room, id).Error
+	err := db.WithContext(ctx).First(&room, id).Error
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
@@ -59,7 +60,7 @@ func GetRoom(c *gin.Context) {
 
 // UpdateRoom updates a room in the database
 func UpdateRoom(c *gin.Context) {
-	var roomUpdate models.RoomUpdate
+	var roomUpdate models.Room
 	var patchedRoom models.Room
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
@@ -73,7 +74,7 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
-	err := db.WithContext(ctx).Find(&patchedRoom, id).Error
+	err := db.WithContext(ctx).First(&patchedRoom, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
@@ -86,7 +87,7 @@ func UpdateRoom(c *gin.Context) {
 		}
 	}
 
-	err = db.WithContext(ctx).Model(&patchedRoom).Updates(roomUpdate).Error
+	err = db.WithContext(ctx).Model(&patchedRoom).Updates(models.Room(roomUpdate)).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
 		log.Printf("Failed to modify document: %v", err)
@@ -103,18 +104,16 @@ func DeleteRoom(c *gin.Context) {
 
 	id := c.Param("id")
 
-	err := db.WithContext(ctx).Delete(&models.Room{}, id).Error
+	result := db.WithContext(ctx).Delete(&models.Room{}, id)
 
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
-			log.Printf("Failed to find document: %v", err)
-			return
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not deleted"})
-			log.Printf("Failed to delete document: %v", err)
-			return
-		}
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not deleted"})
+		log.Printf("Failed to delete document: %v", result.Error)
+		return
+	} else if result.RowsAffected < 1 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+		log.Printf("Failed to find document: %v", result.Error)
+		return
 	}
 
 	c.JSON(http.StatusOK, nil)
