@@ -1,5 +1,5 @@
 ---
-name: Testing Routes
+name: Go Tests
 
 on:
   push:
@@ -12,4 +12,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run Test Command
-        run: docker-compose -f docker-compose_testing.yaml up --build -d && docker-compose exec api go test tests/*
+        run: docker-compose -f docker-compose_testing.yaml up --build -d && docker-compose exec -T api go test tests/*
