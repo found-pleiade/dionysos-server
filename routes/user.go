@@ -29,7 +29,7 @@ func CreateUser(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
 		return
 	}
@@ -37,7 +37,7 @@ func CreateUser(c *gin.Context) {
 	meta, err := col.CreateDocument(ctx, user)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not created"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not created"})
 		log.Printf("Failed to create document: %v", err)
 		return
 	}
@@ -56,7 +56,7 @@ func GetUser(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
 		return
 	}
@@ -64,7 +64,7 @@ func GetUser(c *gin.Context) {
 	_, err = col.ReadDocument(ctx, id, &result)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		log.Printf("Failed to find document: %v", err)
 		return
 	}
@@ -96,7 +96,7 @@ func UpdateUser(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
 		return
 	}
@@ -104,9 +104,15 @@ func UpdateUser(c *gin.Context) {
 	_, err = col.UpdateDocument(driver.WithReturnNew(ctx, &patchedUser), id, userUpdate)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not modified"})
-		log.Printf("Failed to modify document: %v", err)
-		return
+		if driver.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			log.Printf("Failed to find document: %v", err)
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not modified"})
+			log.Printf("Failed to modify document: %v", err)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"user": patchedUser})
@@ -121,7 +127,7 @@ func DeleteUser(c *gin.Context) {
 
 	col, err := db.Collection(ctx, database.UsersCollection)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Cannot access database collection"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot access database collection"})
 		log.Printf("Failed to access collection: %v", err)
 		return
 	}
@@ -129,9 +135,15 @@ func DeleteUser(c *gin.Context) {
 	_, err = col.RemoveDocument(ctx, id)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "User not deleted"})
-		log.Printf("Failed to delete document: %v", err)
-		return
+		if driver.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			log.Printf("Failed to find document: %v", err)
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not deleted"})
+			log.Printf("Failed to delete document: %v", err)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, nil)

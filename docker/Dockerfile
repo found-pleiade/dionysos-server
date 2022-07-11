@@ -1,13 +1,23 @@
-FROM golang:1.18-alpine as cache
+FROM golang:1.18.3 as cache
 WORKDIR /app
-COPY go.* .
+COPY go.* ./
 RUN go mod download
 
+# Test stage
+FROM cache as image-test
+COPY . ./
+ENV GIN_MODE=release
+
+# Dev stage
+FROM cache as image-dev
+COPY . ./
+CMD [ "go", "run", "main.go"]
+
+# Prod/Build stage
 FROM cache as builder
-COPY . .
+COPY . ./
 RUN CGO_ENABLED=0 go build -o dionysos-server
 
-# Prod stage
 FROM alpine:3.16.0 as image-prod
 COPY --from=builder /app/dionysos-server /
 EXPOSE 8080

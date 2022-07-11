@@ -1,15 +1,16 @@
 ---
-version: '3.9'
+version: '3.5'
 
 networks:
   dionysos:
 services:
   api:
     container_name: api
+    tty: true
     build:
       context: .
       dockerfile: docker/Dockerfile
-      target: image-dev
+      target: image-test
     ports:
       - 8080:8080
     networks:
@@ -27,5 +28,7 @@ services:
     command: --server.endpoint tcp://0.0.0.0:8529
     networks:
       - dionysos
+    volumes:
+      - /tmp/arangodb-${RANDOM}:/var/lib/arangodb3
     environment:
       - ARANGO_ROOT_PASSWORD=${ARANGO_PASSWORD}
