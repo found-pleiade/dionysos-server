@@ -79,7 +79,7 @@ func TestUpdateRoom(t *testing.T) {
 	test.Run(t)
 }
 
-// TestDeleteRoom test the DeleteRoom function.
+// TestDeleteRoom tests the DeleteRoom function.
 func TestDeleteRoom(t *testing.T) {
 	method := http.MethodDelete
 
