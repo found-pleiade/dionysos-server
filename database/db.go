@@ -28,6 +28,9 @@ func GetDatabase() *gorm.DB {
 	}
 
 	db.AutoMigrate(&models.User{}, &models.Room{})
+	if err != nil {
+		log.Fatal("failed to migrate database: ", err)
+	}
 
 	return db
 }

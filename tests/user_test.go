@@ -10,13 +10,13 @@ import (
 
 // CreateResponseUser allows to map the response of the CreateUser request and get the key for further requests.
 type CreateResponseUser struct {
-	Uri string `json:"uri"`
+	URI string `json:"uri"`
 }
 
 func (c CreateResponseUser) TargetURI(body []byte) (string, error) {
 	err := json.Unmarshal(body, &c)
 
-	return c.Uri, err
+	return c.URI, err
 }
 
 var userURL = "/users/"

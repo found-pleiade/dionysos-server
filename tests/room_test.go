@@ -10,13 +10,13 @@ import (
 
 // CreateResponseRoom allows to map the response of the CreateRoom request and get the key for further requests.
 type CreateResponseRoom struct {
-	Uri string `json:"uri"`
+	URI string `json:"uri"`
 }
 
 func (c CreateResponseRoom) TargetURI(body []byte) (string, error) {
 	err := json.Unmarshal(body, &c)
 
-	return c.Uri, err
+	return c.URI, err
 }
 
 var roomURL = "/rooms/"
