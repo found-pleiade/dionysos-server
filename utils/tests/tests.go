@@ -20,9 +20,9 @@ type ITest interface {
 	Run(t *testing.T)
 }
 
-// ICreateResponse allows to map a Create request and retrieve the key for further tests.
+// ICreateResponse allows to map a Create request and retrieve the URI for further tests.
 type ICreateResponse interface {
-	UriCreated([]byte) (string, error)
+	TargetURI([]byte) (string, error)
 }
 
 // SubTest is an atomic test that includes a request and its intended response.
@@ -36,7 +36,7 @@ type SubTest struct {
 // Request a simple request to be sent to the router.
 type Request struct {
 	Method string
-	URL    string
+	Target string
 	Body   string
 }
 

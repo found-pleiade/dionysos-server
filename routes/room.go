@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
@@ -45,9 +46,13 @@ func GetRoom(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	id := c.Param("id")
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
+		log.Printf("Failed to convert room ID: %v", err)
+	}
 
-	err := db.WithContext(ctx).First(&room, id).Error
+	err = db.WithContext(ctx).First(&room, id).Error
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
@@ -66,15 +71,25 @@ func UpdateRoom(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	id := c.Param("id")
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
+		log.Printf("Failed to convert room ID: %v", err)
+	}
 
+	// Test if data is valid
 	if err := c.ShouldBindJSON(&roomUpdate); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Printf("Failed to bind JSON: %v", err)
 		return
 	}
+	if isNil := roomUpdate == (models.RoomUpdate{}); isNil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No data to update"})
+		log.Printf("Failed to bind JSON: No data to update")
+		return
+	}
 
-	err := db.WithContext(ctx).First(&patchedRoom, id).Error
+	err = db.WithContext(ctx).First(&patchedRoom, id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
@@ -87,7 +102,7 @@ func UpdateRoom(c *gin.Context) {
 		}
 	}
 
-	err = db.WithContext(ctx).Model(&patchedRoom).Updates(models.Room(roomUpdate)).Error
+	err = db.WithContext(ctx).Model(&patchedRoom).Updates(roomUpdate.ToRoom()).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
 		log.Printf("Failed to modify document: %v", err)
@@ -102,7 +117,11 @@ func DeleteRoom(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	id := c.Param("id")
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
+		log.Printf("Failed to convert room ID: %v", err)
+	}
 
 	result := db.WithContext(ctx).Delete(&models.Room{}, id)
 

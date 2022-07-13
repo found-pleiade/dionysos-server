@@ -8,6 +8,12 @@ type Room struct {
 }
 
 type RoomUpdate struct {
-	gorm.Model
 	Name string `json:"name,omitempty"`
+}
+
+// ToRoom converts a RoomUpdate to a Room
+func (ru *RoomUpdate) ToRoom() *Room {
+	return &Room{
+		Name: ru.Name,
+	}
 }
