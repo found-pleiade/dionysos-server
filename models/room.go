@@ -8,5 +8,6 @@ type Room struct {
 }
 
 type RoomUpdate struct {
+	gorm.Model
 	Name string `json:"name,omitempty"`
 }

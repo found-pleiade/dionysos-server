@@ -60,7 +60,7 @@ func GetRoom(c *gin.Context) {
 
 // UpdateRoom updates a room in the database
 func UpdateRoom(c *gin.Context) {
-	var roomUpdate models.Room
+	var roomUpdate models.RoomUpdate
 	var patchedRoom models.Room
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
