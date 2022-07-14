@@ -27,6 +27,7 @@ func GetDatabase() *gorm.DB {
 		log.Fatal("failed to connect database: ", err)
 	}
 
+	// nolint:errcheck
 	db.AutoMigrate(&models.User{}, &models.Room{})
 	if err != nil {
 		log.Fatal("failed to migrate database: ", err)
