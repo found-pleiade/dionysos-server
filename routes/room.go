@@ -28,12 +28,6 @@ func CreateRoom(c *gin.Context) {
 		return
 	}
 
-	if err := validate.Struct(room); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		log.Printf("Failed to validate: %v", err)
-		return
-	}
-
 	err := db.WithContext(ctx).Create(&room).Error
 
 	if err != nil {
@@ -87,11 +81,6 @@ func UpdateRoom(c *gin.Context) {
 	if err := c.ShouldBindJSON(&roomUpdate); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Printf("Failed to bind JSON: %v", err)
-		return
-	}
-	if err := validate.Struct(roomUpdate); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		log.Printf("Failed to validate: %v", err)
 		return
 	}
 
