@@ -24,13 +24,13 @@ func GetDatabase() *gorm.DB {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("failed to connect database: ", err)
+		log.Fatal("Failed to connect to the database: ", err)
 	}
 
 	// nolint:errcheck
 	db.AutoMigrate(&models.User{}, &models.Room{})
 	if err != nil {
-		log.Fatal("failed to migrate database: ", err)
+		log.Fatal("Failed to migrate database: ", err)
 	}
 
 	return db
