@@ -11,18 +11,7 @@ import (
 
 // GetDatabase returns a database instance
 func GetDatabase() *gorm.DB {
-	username, found := os.LookupEnv("POSTGRES_USER")
-	if !found {
-		log.Fatal("POSTGRES_USER environment variable not found")
-	}
-	password, found := os.LookupEnv("POSTGRES_PASSWORD")
-	if !found {
-		log.Fatal("POSTGRES_PASSWORD environment variable not found")
-	}
-
-	dsn := "host=postgres port=5432 user=" + username + " password=" + password + " dbname=dionysos"
-
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(createDSN()), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to the database: ", err)
 	}
@@ -34,4 +23,30 @@ func GetDatabase() *gorm.DB {
 	}
 
 	return db
+}
+
+// createDSN creates a DSN string from the environment variables to connect to the database.
+func createDSN() string {
+	username, found := os.LookupEnv("POSTGRES_USER")
+	if !found {
+		log.Fatal("POSTGRES_USER environment variable not found")
+	}
+	password, found := os.LookupEnv("POSTGRES_PASSWORD")
+	if !found {
+		log.Fatal("POSTGRES_PASSWORD environment variable not found")
+	}
+	host, found := os.LookupEnv("POSTGRES_HOST")
+	if !found {
+		log.Fatal("POSTGRES_HOST environment variable not found")
+	}
+	port, found := os.LookupEnv("POSTGRES_PORT")
+	if !found {
+		log.Fatal("POSTGRES_PORT environment variable not found")
+	}
+	dbname, found := os.LookupEnv("POSTGRES_DB")
+	if !found {
+		log.Fatal("POSTGRES_DB environment variable not found")
+	}
+
+	return "host=" + host + " port=" + port + " user=" + username + " password=" + password + " dbname=" + dbname
 }
