@@ -28,12 +28,6 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	if err := validate.Struct(user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		log.Printf("Failed to validate: %v", err)
-		return
-	}
-
 	err := db.WithContext(ctx).Create(&user).Error
 
 	if err != nil {
@@ -87,11 +81,6 @@ func UpdateUser(c *gin.Context) {
 	if err := c.ShouldBindJSON(&userUpdate); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Printf("Failed to bind JSON: %v", err)
-		return
-	}
-	if err := validate.Struct(userUpdate); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		log.Printf("Failed to validate: %v", err)
 		return
 	}
 
