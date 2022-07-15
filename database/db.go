@@ -7,11 +7,12 @@ import (
 	"github.com/Brawdunoir/dionysos-server/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // GetDatabase returns a database instance
 func GetDatabase() *gorm.DB {
-	db, err := gorm.Open(postgres.Open(createDSN()), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(createDSN()), createConfig())
 	if err != nil {
 		log.Fatal("Failed to connect to the database: ", err)
 	}
@@ -49,4 +50,23 @@ func createDSN() string {
 	}
 
 	return "host=" + host + " port=" + port + " user=" + username + " password=" + password + " dbname=" + dbname
+}
+
+// createConfig creates a Gorm config depending on the environment variables.
+func createConfig() *gorm.Config {
+	env, found := os.LookupEnv("ENVIRONMENT")
+	if !found {
+		log.Println("ENVIRONMENT environment variable not found")
+		return &gorm.Config{}
+	}
+
+	if env == "TEST" {
+		return &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)}
+	} else if env == "DEV" {
+		return &gorm.Config{Logger: logger.Default.LogMode(logger.Info)}
+	} else if env == "PROD" {
+		return &gorm.Config{Logger: logger.Default.LogMode(logger.Error)}
+	} else {
+		return &gorm.Config{}
+	}
 }
