@@ -4,11 +4,11 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model `json:"-"`
-	Name       string `json:"name" validate:"gte=2,lte=20,alphanumunicode"`
+	Name       string `json:"name" validate:"gte=2,lte=20"`
 }
 
 type UserUpdate struct {
-	Name string `json:"name,omitempty" validate:"gte=2,lte=20,alphanumunicode"`
+	Name string `json:"name,omitempty" validate:"gte=2,lte=20"`
 }
 
 // ToUser converts a UserUpdate to a User
