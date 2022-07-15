@@ -1,9 +1,19 @@
 package models
 
+import "gorm.io/gorm"
+
 type User struct {
-	Username string `json:"username" binding:"required"`
+	gorm.Model `json:"-"`
+	Username   string `json:"username" binding:"required"`
 }
 
 type UserUpdate struct {
 	Username string `json:"username,omitempty"`
+}
+
+// ToUser converts a UserUpdate to a User
+func (u *UserUpdate) ToUser() *User {
+	return &User{
+		Username: u.Username,
+	}
 }
