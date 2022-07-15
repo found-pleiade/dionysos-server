@@ -4,16 +4,16 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model `json:"-"`
-	Username   string `json:"username" binding:"required"`
+	Name       string `json:"name" binding:"required"`
 }
 
 type UserUpdate struct {
-	Username string `json:"username,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 // ToUser converts a UserUpdate to a User
 func (u *UserUpdate) ToUser() *User {
 	return &User{
-		Username: u.Username,
+		Name: u.Name,
 	}
 }
