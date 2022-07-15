@@ -23,15 +23,15 @@ services:
       - POSTGRES_PORT=${POSTGRES_PORT}
     depends_on:
       - postgres
-postgres:
-  container_name: ${POSTGRES_HOST}
-  image: postgres:14
-  command: -p ${POSTGRES_PORT}
-  volumes:
-    - - /tmp/postgres-${RANDOM}:/var/lib/postgresql/data
-  networks:
-    dionysos:
-  environment:
-    - POSTGRES_DB=${POSTGRES_DB}
-    - POSTGRES_USER=${POSTGRES_USER}
-    - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  postgres:
+    container_name: ${POSTGRES_HOST}
+    image: postgres:14
+    command: -p ${POSTGRES_PORT}
+    volumes:
+      - /tmp/postgres-${RANDOM}:/var/lib/postgresql/data
+    networks:
+      dionysos:
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
