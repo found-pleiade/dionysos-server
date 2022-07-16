@@ -2,44 +2,51 @@
 package routes
 
 import (
-	"net/http"
-	"os"
-
+	"github.com/Brawdunoir/dionysos-server/constants"
+	docs "github.com/Brawdunoir/dionysos-server/docs"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // SetupRouter sets up the router
 func SetupRouter(router *gin.Engine) *gin.Engine {
+
+	basePath := constants.BasePath
+
 	router.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
 		AllowCredentials: true,
 		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
 	}))
 
-	userRouter := router.Group("/users")
+	v := router.Group(basePath)
 	{
-		userRouter.POST("/", CreateUser)
-		userRouter.GET("/:id", GetUser)
-		userRouter.PATCH("/:id", UpdateUser)
-		userRouter.DELETE("/:id", DeleteUser)
-	}
-
-	roomRouter := router.Group("/rooms")
-	{
-		roomRouter.POST("/", CreateRoom)
-		roomRouter.GET("/:id", GetRoom)
-		roomRouter.PATCH("/:id", UpdateRoom)
-		roomRouter.DELETE("/:id", DeleteRoom)
-	}
-
-	router.GET("/version", func(c *gin.Context) {
-		var version string
-		if version = os.Getenv("VERSION"); version == "" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
+		// Users
+		userRouter := v.Group("/users")
+		{
+			userRouter.POST("/", CreateUser)
+			userRouter.GET("/:id", GetUser)
+			userRouter.PATCH("/:id", UpdateUser)
+			userRouter.DELETE("/:id", DeleteUser)
 		}
-		c.String(http.StatusOK, version)
-	})
+
+		// Rooms
+		roomRouter := v.Group("/rooms")
+		{
+			roomRouter.POST("/", CreateRoom)
+			roomRouter.GET("/:id", GetRoom)
+			roomRouter.PATCH("/:id", UpdateRoom)
+			roomRouter.DELETE("/:id", DeleteRoom)
+		}
+		// Version
+		v.GET("/version", GetVersion)
+	}
+
+	// Docs
+	docs.SwaggerInfo.BasePath = basePath
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	return router
 }
