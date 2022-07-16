@@ -60,13 +60,14 @@ func createConfig() *gorm.Config {
 		return &gorm.Config{}
 	}
 
-	if env == "TEST" {
+	switch env {
+	case "TEST":
 		return &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)}
-	} else if env == "DEV" {
+	case "DEV":
 		return &gorm.Config{Logger: logger.Default.LogMode(logger.Info)}
-	} else if env == "PROD" {
+	case "PROD":
 		return &gorm.Config{Logger: logger.Default.LogMode(logger.Error)}
-	} else {
+	default:
 		return &gorm.Config{}
 	}
 }
