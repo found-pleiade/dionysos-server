@@ -12,7 +12,17 @@ on:
   pull_request:
     branches: [main]
 jobs:
-  run-lint:
+  run-lint-go:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Lint go code
+        uses: golangci/golangci-lint-action@v3
+  run-lint-other:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,11 +30,11 @@ jobs:
         with:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
-
-      - name: Lint Code Base
-        uses: github/super-linter@v4
+      - name: Lint other code
+        uses: github/super-linter/slim@v4
         env:
-          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_ALL_CODEBASE: true
           VALIDATE_JSCPD: false
+          VALIDATE_GO: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
