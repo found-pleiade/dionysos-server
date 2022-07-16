@@ -46,7 +46,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, u.CreateUriResponse("/users/"+fmt.Sprint(user.ID)))
+	c.JSON(http.StatusCreated, u.CreateURIResponse("/users/"+fmt.Sprint(user.ID)))
 }
 
 // GetUser godoc
@@ -57,7 +57,7 @@ func CreateUser(c *gin.Context) {
 // @Success      200 {object} models.User
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      404 {object} utils.ErrorResponse "User not found"
-// @Router       /users/:id [get]
+// @Router       /users/id [get]
 func GetUser(c *gin.Context) {
 	var user models.User
 
@@ -92,7 +92,7 @@ func GetUser(c *gin.Context) {
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      404 {object} utils.ErrorResponse "User not found"
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
-// @Router       /users/:id [patch]
+// @Router       /users/id [patch]
 func UpdateUser(c *gin.Context) {
 	var userUpdate models.UserUpdate
 	var patchedUser models.User
@@ -149,7 +149,7 @@ func UpdateUser(c *gin.Context) {
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      404 {object} utils.ErrorResponse "User not found"
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
-// @Router       /users/:id [delete]
+// @Router       /users/id [delete]
 func DeleteUser(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()

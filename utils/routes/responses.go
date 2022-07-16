@@ -6,12 +6,12 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-type UriResponse struct {
+type URIResponse struct {
 	URI string `json:"uri" example:"/api/v0/users/1"`
 }
 
-func CreateUriResponse(uri string) *UriResponse {
-	return &UriResponse{
+func CreateURIResponse(uri string) *URIResponse {
+	return &URIResponse{
 		URI: constants.BasePath + uri,
 	}
 }
