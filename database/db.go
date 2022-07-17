@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	c "github.com/Brawdunoir/dionysos-server/constants"
 	"github.com/Brawdunoir/dionysos-server/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -57,18 +58,20 @@ func createConfig() *gorm.Config {
 	env, found := os.LookupEnv("ENVIRONMENT")
 	if !found {
 		log.Println("ENVIRONMENT environment variable not found")
+		log.Println("Possible values are : " + c.ENVIRONMENT_TESTING + ", " + c.ENVIRONMENT_DEVELOPMENT + ", " + c.ENVIRONMENT_PRODUCTION)
 		return &gorm.Config{}
 	}
 
 	switch env {
-	case "TEST":
+	case c.ENVIRONMENT_TESTING:
 		return &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)}
-	case "DEV":
+	case c.ENVIRONMENT_DEVELOPMENT:
 		return &gorm.Config{Logger: logger.Default.LogMode(logger.Info)}
-	case "PROD":
+	case c.ENVIRONMENT_PRODUCTION:
 		return &gorm.Config{Logger: logger.Default.LogMode(logger.Error)}
 	default:
 		log.Println("ENVIRONMENT environment variable not valid, leaving default config")
+		log.Println("Possible values are : " + c.ENVIRONMENT_TESTING + ", " + c.ENVIRONMENT_DEVELOPMENT + ", " + c.ENVIRONMENT_PRODUCTION)
 		return &gorm.Config{}
 	}
 }
