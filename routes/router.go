@@ -5,17 +5,12 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 // SetupRouter sets up the router
 func SetupRouter(router *gin.Engine) *gin.Engine {
-	router.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true,
-		AllowCredentials: true,
-		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
-	}))
+	router.Use(options)
 
 	userRouter := router.Group("/users")
 	{
@@ -42,4 +37,18 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 	})
 
 	return router
+}
+
+// Middleware for CORS requests.
+func options(c *gin.Context) {
+	c.Header("Allow", "GET,POST,PATCH,DELETE,OPTIONS")
+	c.Header("Access-Control-Allow-Origin", "*")
+	c.Header("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS")
+	c.Header("Access-Control-Allow-Headers", "X-Requested-With, Authorization, Origin, Content-Type, Accept")
+	c.Header("Content-Type", "application/json")
+	if c.Request.Method != "OPTIONS" {
+		c.Next()
+	} else {
+		c.AbortWithStatus(http.StatusOK)
+	}
 }
