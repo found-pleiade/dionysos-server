@@ -4,14 +4,16 @@ import (
 	"log"
 	"os"
 
+	c "github.com/Brawdunoir/dionysos-server/constants"
 	"github.com/Brawdunoir/dionysos-server/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // GetDatabase returns a database instance
 func GetDatabase() *gorm.DB {
-	db, err := gorm.Open(postgres.Open(createDSN()), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(createDSN()), createConfig())
 	if err != nil {
 		log.Fatal("Failed to connect to the database: ", err)
 	}
@@ -49,4 +51,27 @@ func createDSN() string {
 	}
 
 	return "host=" + host + " port=" + port + " user=" + username + " password=" + password + " dbname=" + dbname
+}
+
+// createConfig creates a Gorm config depending on the environment variables.
+func createConfig() *gorm.Config {
+	env, found := os.LookupEnv("ENVIRONMENT")
+	if !found {
+		log.Println("ENVIRONMENT environment variable not found")
+		log.Println("Possible values are : " + c.ENVIRONMENT_TESTING + ", " + c.ENVIRONMENT_DEVELOPMENT + ", " + c.ENVIRONMENT_PRODUCTION)
+		return &gorm.Config{}
+	}
+
+	switch env {
+	case c.ENVIRONMENT_TESTING:
+		return &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)}
+	case c.ENVIRONMENT_DEVELOPMENT:
+		return &gorm.Config{Logger: logger.Default.LogMode(logger.Info)}
+	case c.ENVIRONMENT_PRODUCTION:
+		return &gorm.Config{Logger: logger.Default.LogMode(logger.Error)}
+	default:
+		log.Println("ENVIRONMENT environment variable not valid, leaving default config")
+		log.Println("Possible values are : " + c.ENVIRONMENT_TESTING + ", " + c.ENVIRONMENT_DEVELOPMENT + ", " + c.ENVIRONMENT_PRODUCTION)
+		return &gorm.Config{}
+	}
 }
