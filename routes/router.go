@@ -20,17 +20,17 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 	userRouter := router.Group("/users")
 	{
 		userRouter.POST("/", CreateUser)
-		userRouter.GET("/:id", GetUser)
-		userRouter.PATCH("/:id", UpdateUser)
-		userRouter.DELETE("/:id", DeleteUser)
+		userRouter.GET("/:id/", GetUser)
+		userRouter.PATCH("/:id/", UpdateUser)
+		userRouter.DELETE("/:id/", DeleteUser)
 	}
 
 	roomRouter := router.Group("/rooms")
 	{
 		roomRouter.POST("/", CreateRoom)
-		roomRouter.GET("/:id", GetRoom)
-		roomRouter.PATCH("/:id", UpdateRoom)
-		roomRouter.DELETE("/:id", DeleteRoom)
+		roomRouter.GET("/:id/", GetRoom)
+		roomRouter.PATCH("/:id/", UpdateRoom)
+		roomRouter.DELETE("/:id/", DeleteRoom)
 	}
 
 	router.GET("/version", func(c *gin.Context) {
