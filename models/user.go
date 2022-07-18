@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model `json:"-"`
-	Name       string `json:"name" binding:"gte=2,lte=20"`
+	Name       string `json:"name" binding:"required,gte=2,lte=20"`
 }
 
 type UserUpdate struct {
