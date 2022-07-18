@@ -57,7 +57,7 @@ func createDSN() string {
 func createConfig() *gorm.Config {
 	env, found := os.LookupEnv("ENVIRONMENT")
 	if !found {
-		log.Println("ENVIRONMENT environment variable not found")
+		log.Println("ENVIRONMENT variable not found")
 		log.Println("Possible values are : " + c.ENVIRONMENT_TESTING + ", " + c.ENVIRONMENT_DEVELOPMENT + ", " + c.ENVIRONMENT_PRODUCTION)
 		return &gorm.Config{}
 	}
