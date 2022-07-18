@@ -37,7 +37,7 @@ func (test TestRUD) Run(t *testing.T) {
 	// Then run the tests.
 	for _, subtest := range test.SubTests {
 		t.Run(subtest.Name, func(t *testing.T) {
-			url := uri + subtest.Request.Target + "/"
+			url := uri + subtest.Request.Target
 
 			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body)
 			if err != nil {
