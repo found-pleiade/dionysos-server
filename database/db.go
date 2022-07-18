@@ -70,7 +70,7 @@ func createConfig() *gorm.Config {
 	case c.ENVIRONMENT_PRODUCTION:
 		return &gorm.Config{Logger: logger.Default.LogMode(logger.Error)}
 	default:
-		log.Println("ENVIRONMENT environment variable not valid, leaving default config")
+		log.Println("ENVIRONMENT variable not valid, using default config")
 		log.Println("Possible values are : " + c.ENVIRONMENT_TESTING + ", " + c.ENVIRONMENT_DEVELOPMENT + ", " + c.ENVIRONMENT_PRODUCTION)
 		return &gorm.Config{}
 	}
