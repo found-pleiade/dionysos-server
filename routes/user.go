@@ -83,11 +83,6 @@ func UpdateUser(c *gin.Context) {
 		log.Printf("Failed to bind JSON: %v", err)
 		return
 	}
-	if isNil := userUpdate == (models.UserUpdate{}); isNil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No data to update"})
-		log.Printf("Failed to bind JSON: No data to update")
-		return
-	}
 
 	err = db.WithContext(ctx).First(&patchedUser, id).Error
 	if err != nil {

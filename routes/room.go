@@ -83,11 +83,6 @@ func UpdateRoom(c *gin.Context) {
 		log.Printf("Failed to bind JSON: %v", err)
 		return
 	}
-	if isNil := roomUpdate == (models.RoomUpdate{}); isNil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No data to update"})
-		log.Printf("Failed to bind JSON: No data to update")
-		return
-	}
 
 	err = db.WithContext(ctx).First(&patchedRoom, id).Error
 	if err != nil {
