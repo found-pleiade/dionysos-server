@@ -21,6 +21,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 
 	r := router.Group(basePath)
 	{
+		// User
 		userRouter := r.Group("/users")
 		{
 			userRouter.POST("", CreateUser)
@@ -28,7 +29,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			userRouter.PATCH("/:id", UpdateUser)
 			userRouter.DELETE("/:id", DeleteUser)
 		}
-
+		// Room
 		roomRouter := r.Group("/rooms")
 		{
 			roomRouter.POST("", CreateRoom)
