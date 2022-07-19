@@ -22,7 +22,7 @@ import (
 // @Accept       json
 // @Param user body models.User true "User object"
 // @Produce      json
-// @Success      201 {object} utils.UriResponse "User created"
+// @Success      201 {object} models.User "User created"
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
 // @Router       /users [post]
