@@ -32,8 +32,8 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			roomRouter.PATCH("/:id", UpdateRoom)
 			roomRouter.DELETE("/:id", DeleteRoom)
 		}
-		r.GET("/version", func(c *gin.Context) {
-			var version string
+		// Version
+		r.GET("/version", GetVersion)
 			if version = os.Getenv("VERSION"); version == "" {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
 			}
