@@ -22,7 +22,7 @@ import (
 // @Accept       json
 // @Param room body models.Room true "Room object"
 // @Produce      json
-// @Success      201 {object} models.Room "Room created"
+// @Success      201 {object} utils.URIResponse "Room created"
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
 // @Router       /rooms [post]

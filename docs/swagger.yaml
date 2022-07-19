@@ -24,6 +24,12 @@ definitions:
       error:
         type: string
     type: object
+  utils.URIResponse:
+    properties:
+      uri:
+        example: /api/v0/model/id
+        type: string
+    type: object
 info:
   contact:
     name: API Support
@@ -52,7 +58,7 @@ paths:
         "201":
           description: Room created
           schema:
-            $ref: '#/definitions/models.Room'
+            $ref: '#/definitions/utils.URIResponse'
         "400":
           description: Invalid request
           schema:
@@ -167,7 +173,7 @@ paths:
         "201":
           description: User created
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/utils.URIResponse'
         "400":
           description: Invalid request
           schema:

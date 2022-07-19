@@ -50,7 +50,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Room created",
                         "schema": {
-                            "$ref": "#/definitions/models.Room"
+                            "$ref": "#/definitions/utils.URIResponse"
                         }
                     },
                     "400": {
@@ -226,7 +226,7 @@ const docTemplate = `{
                     "201": {
                         "description": "User created",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/utils.URIResponse"
                         }
                     },
                     "400": {
@@ -435,6 +435,15 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "utils.URIResponse": {
+            "type": "object",
+            "properties": {
+                "uri": {
+                    "type": "string",
+                    "example": "/api/v0/model/id"
                 }
             }
         }
