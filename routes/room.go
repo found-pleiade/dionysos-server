@@ -139,7 +139,7 @@ func UpdateRoom(c *gin.Context) {
 // @Summary      Deletes a room
 // @Tags         Rooms
 // @Param id path int true "Room ID"
-// @Success      200
+// @Success      204
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      404 {object} utils.ErrorResponse "Room not found"
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
