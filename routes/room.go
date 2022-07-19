@@ -57,7 +57,7 @@ func CreateRoom(c *gin.Context) {
 // @Success      200 {object} models.Room
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      404 {object} utils.ErrorResponse "Room not found"
-// @Router       /rooms/id [get]
+// @Router       /rooms/{id} [get]
 func GetRoom(c *gin.Context) {
 	var room models.Room
 
@@ -92,7 +92,7 @@ func GetRoom(c *gin.Context) {
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      404 {object} utils.ErrorResponse "Room not found"
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
-// @Router       /rooms/id [patch]
+// @Router       /rooms/{id} [patch]
 func UpdateRoom(c *gin.Context) {
 	var roomUpdate models.RoomUpdate
 	var patchedRoom models.Room
@@ -143,7 +143,7 @@ func UpdateRoom(c *gin.Context) {
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      404 {object} utils.ErrorResponse "Room not found"
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
-// @Router       /rooms/id [delete]
+// @Router       /rooms/{id} [delete]
 func DeleteRoom(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
