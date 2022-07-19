@@ -55,7 +55,7 @@ func TestGetUser(t *testing.T) {
 		CreateRequest:  userCreateRequest,
 		CreateResponse: CreateResponseUser{},
 		SubTests: []utils.SubTest{
-			{Name: "Success", Request: utils.Request{Method: method}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"user":{"name":"test"}}`},
+			{Name: "Success", Request: utils.Request{Method: method}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"test"}`},
 			{Name: "Invalid ID", Request: utils.Request{Method: method, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid user ID"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, Target: "987654321"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
 		},
@@ -72,7 +72,7 @@ func TestUpdateUser(t *testing.T) {
 		CreateResponse: CreateResponseUser{},
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, Body: `{"name":"test2"}`}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
-			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"user":{"name":"test2"}}`},
+			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"test2"}`},
 			{Name: "Empty Body", Request: utils.Request{Method: method, Body: ``}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Empty json", Request: utils.Request{Method: method, Body: `{}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Bad name key", Request: utils.Request{Method: method, Body: `{"wrongkey":"test2"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},

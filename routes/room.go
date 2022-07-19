@@ -61,7 +61,7 @@ func GetRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"room": room})
+	c.JSON(http.StatusOK, room)
 }
 
 // UpdateRoom updates a room in the database
