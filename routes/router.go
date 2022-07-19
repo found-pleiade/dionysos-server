@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/Brawdunoir/dionysos-server/constants"
+	docs "github.com/Brawdunoir/dionysos-server/docs"
 	"github.com/gin-gonic/gin"
-	"github.com/swaggo/swag/example/basic/docs"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
