@@ -105,7 +105,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": patchedUser})
+	c.JSON(http.StatusNoContent, nil)
 }
 
 // DeleteUser deletes a user in the database

@@ -105,7 +105,7 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"room": patchedRoom})
+	c.JSON(http.StatusNoContent, nil)
 }
 
 // DeleteRoom deletes a room in the database
