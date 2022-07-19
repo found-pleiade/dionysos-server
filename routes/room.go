@@ -61,7 +61,7 @@ func GetRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"room": room})
+	c.JSON(http.StatusOK, room)
 }
 
 // UpdateRoom updates a room in the database
@@ -105,7 +105,7 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"room": patchedRoom})
+	c.JSON(http.StatusNoContent, nil)
 }
 
 // DeleteRoom deletes a room in the database
@@ -131,5 +131,5 @@ func DeleteRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	c.JSON(http.StatusNoContent, nil)
 }

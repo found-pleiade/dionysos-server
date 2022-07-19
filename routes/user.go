@@ -61,7 +61,7 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": user})
+	c.JSON(http.StatusOK, user)
 }
 
 // UpdateUser updates a user in the database
@@ -105,7 +105,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": patchedUser})
+	c.JSON(http.StatusNoContent, nil)
 }
 
 // DeleteUser deletes a user in the database
@@ -131,5 +131,5 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	c.JSON(http.StatusNoContent, nil)
 }
