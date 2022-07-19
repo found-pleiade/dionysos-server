@@ -16,7 +16,16 @@ import (
 	"gorm.io/gorm"
 )
 
-// CreateRoom creates a room in the database
+// CreateRoom godoc
+// @Summary      Creates a room
+// @Tags         Rooms
+// @Accept       json
+// @Param room body models.Room true "Room object"
+// @Produce      json
+// @Success      201 {object} utils.UriResponse "Room created"
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /rooms [post]
 func CreateRoom(c *gin.Context) {
 	var room models.Room
 
@@ -40,7 +49,15 @@ func CreateRoom(c *gin.Context) {
 	c.JSON(http.StatusCreated, utils.CreateURIResponse("/rooms/"+fmt.Sprint(room.ID)))
 }
 
-// GetRoom returns a room from the database
+// GetRoom godoc
+// @Summary      Gets a room
+// @Tags         Rooms
+// @Param 			 id path int true "Room ID"
+// @Produce      json
+// @Success      200 {object} models.Room
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      404 {object} utils.ErrorResponse "Room not found"
+// @Router       /rooms/id [get]
 func GetRoom(c *gin.Context) {
 	var room models.Room
 
@@ -64,7 +81,18 @@ func GetRoom(c *gin.Context) {
 	c.JSON(http.StatusOK, room)
 }
 
-// UpdateRoom updates a room in the database
+// UpdateRoom godoc
+// @Summary      Updates a room
+// @Tags         Rooms
+// @Accept       json
+// @Produce      json
+// @Param id path int true "Room ID"
+// @Param room body models.Room true "Room object"
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      404 {object} utils.ErrorResponse "Room not found"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /rooms/id [patch]
 func UpdateRoom(c *gin.Context) {
 	var roomUpdate models.RoomUpdate
 	var patchedRoom models.Room
@@ -107,7 +135,15 @@ func UpdateRoom(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// DeleteRoom deletes a room in the database
+// DeleteRoom godoc
+// @Summary      Deletes a room
+// @Tags         Rooms
+// @Param id path int true "Room ID"
+// @Success      200
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      404 {object} utils.ErrorResponse "Room not found"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /rooms/id [delete]
 func DeleteRoom(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()

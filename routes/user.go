@@ -16,7 +16,16 @@ import (
 	"gorm.io/gorm"
 )
 
-// CreateUser creates a user in the database
+// CreateUser godoc
+// @Summary      Creates a user
+// @Tags         Users
+// @Accept       json
+// @Param user body models.User true "User object"
+// @Produce      json
+// @Success      201 {object} utils.UriResponse "User created"
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /users [post]
 func CreateUser(c *gin.Context) {
 	var user models.User
 
@@ -40,7 +49,15 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, utils.CreateURIResponse("/users/"+fmt.Sprint(user.ID)))
 }
 
-// GetUser returns a user from the database
+// GetUser godoc
+// @Summary      Gets a user
+// @Tags         Users
+// @Param 			 id path int true "User ID"
+// @Produce      json
+// @Success      200 {object} models.User
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      404 {object} utils.ErrorResponse "User not found"
+// @Router       /users/id [get]
 func GetUser(c *gin.Context) {
 	var user models.User
 
@@ -64,7 +81,18 @@ func GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-// UpdateUser updates a user in the database
+// UpdateUser godoc
+// @Summary      Updates a user
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param id path int true "User ID"
+// @Param user body models.User true "User object"
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      404 {object} utils.ErrorResponse "User not found"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /users/id [patch]
 func UpdateUser(c *gin.Context) {
 	var userUpdate models.UserUpdate
 	var patchedUser models.User
@@ -108,7 +136,15 @@ func UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// DeleteUser deletes a user in the database
+// DeleteUser godoc
+// @Summary      Deletes a user
+// @Tags         Users
+// @Param id path int true "User ID"
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      404 {object} utils.ErrorResponse "User not found"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /users/id [delete]
 func DeleteUser(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()

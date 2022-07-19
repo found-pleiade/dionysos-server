@@ -3,15 +3,19 @@ package routes
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/Brawdunoir/dionysos-server/constants"
 	"github.com/gin-gonic/gin"
+	"github.com/swaggo/swag/example/basic/docs"
+
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // SetupRouter sets up the router
 func SetupRouter(router *gin.Engine) *gin.Engine {
 	basePath := constants.BasePath
+	docs.SwaggerInfo.BasePath = basePath
 
 	router.Use(options)
 
@@ -34,12 +38,10 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		}
 		// Version
 		r.GET("/version", GetVersion)
-			if version = os.Getenv("VERSION"); version == "" {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
-			}
-			c.String(http.StatusOK, version)
-		})
+
+		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	}
+
 	return router
 }
 
