@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
+	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -36,7 +37,7 @@ func CreateRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"uri": "/rooms/" + fmt.Sprint(room.ID)})
+	c.JSON(http.StatusCreated, utils.CreateURIResponse("/rooms/"+fmt.Sprint(room.ID)))
 }
 
 // GetRoom returns a room from the database

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
+	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -36,7 +37,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"uri": "/users/" + fmt.Sprint(user.ID)})
+	c.JSON(http.StatusCreated, utils.CreateURIResponse("/users/"+fmt.Sprint(user.ID)))
 }
 
 // GetUser returns a user from the database

@@ -6,3 +6,5 @@ const (
 	ENVIRONMENT_DEVELOPMENT = "DEV"
 	ENVIRONMENT_TESTING     = "TEST"
 )
+
+const BasePath string = "/api/v0"
