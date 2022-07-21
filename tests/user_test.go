@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Brawdunoir/dionysos-server/constants"
 	utils "github.com/Brawdunoir/dionysos-server/utils/tests"
 )
 
@@ -20,7 +19,7 @@ func (c CreateResponseUser) TargetURI(body []byte) (string, error) {
 	return c.URI, err
 }
 
-var userURL = constants.BasePath + "/users"
+var userURL = "/users"
 var userCreateRequest = utils.Request{Method: http.MethodPost, Target: userURL, Body: `{"name":"test"}`}
 
 // TestCreateUser tests the CreateUser function.

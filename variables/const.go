@@ -1,4 +1,4 @@
-package constants
+package variables
 
 const (
 	// Represents the possible values for the ENVIRONMENT variable.
@@ -6,5 +6,3 @@ const (
 	ENVIRONMENT_DEVELOPMENT = "DEV"
 	ENVIRONMENT_TESTING     = "TEST"
 )
-
-const BasePath string = "/api/v0"

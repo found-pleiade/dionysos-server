@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Brawdunoir/dionysos-server/constants"
 	utils "github.com/Brawdunoir/dionysos-server/utils/tests"
 )
 
@@ -20,7 +19,7 @@ func (c CreateResponseRoom) TargetURI(body []byte) (string, error) {
 	return c.URI, err
 }
 
-var roomURL = constants.BasePath + "/rooms"
+var roomURL = "/rooms"
 var roomCreateRequest = utils.Request{Method: http.MethodPost, Target: roomURL, Body: `{"name":"test"}`}
 
 // TestCreateRoom tests the CreateRoom function.

@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Brawdunoir/dionysos-server/constants"
+	"github.com/Brawdunoir/dionysos-server/variables"
 	"github.com/gin-gonic/gin"
 )
 
 // SetupRouter sets up the router
 func SetupRouter(router *gin.Engine) *gin.Engine {
-	basePath := constants.BasePath
+	basePath := variables.BasePath
 
 	router.Use(options)
 

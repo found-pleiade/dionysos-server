@@ -22,6 +22,7 @@ services:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - ENVIRONMENT=TEST
+      - BASE_PATH=
     depends_on:
       - postgres
   postgres:
