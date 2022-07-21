@@ -1,5 +1,6 @@
 # Dionysos Server
 [![GitHub Super-Linter](https://github.com/Brawdunoir/dionysos-server/workflows/Lint%20Code%20Base/badge.svg)](https://github.com/marketplace/actions/super-linter)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Brawdunoir/dionysos-server)](https://goreportcard.com/report/github.com/Brawdunoir/dionysos-server)
 
 Dionysos Server is a golang RESTful API for the [dionysos-client](https://github.com/Brawdunoir/dionysos-client) project, enabling users to **share cinematic experiences**.
 
