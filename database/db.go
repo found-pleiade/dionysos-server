@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	c "github.com/Brawdunoir/dionysos-server/constants"
 	"github.com/Brawdunoir/dionysos-server/models"
+	c "github.com/Brawdunoir/dionysos-server/variables"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -55,14 +55,7 @@ func createDSN() string {
 
 // createConfig creates a Gorm config depending on the environment variables.
 func createConfig() *gorm.Config {
-	env, found := os.LookupEnv("ENVIRONMENT")
-	if !found {
-		log.Println("ENVIRONMENT variable not found")
-		log.Println("Possible values are : " + c.ENVIRONMENT_TESTING + ", " + c.ENVIRONMENT_DEVELOPMENT + ", " + c.ENVIRONMENT_PRODUCTION)
-		return &gorm.Config{}
-	}
-
-	switch env {
+	switch c.Environment {
 	case c.ENVIRONMENT_TESTING:
 		return &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)}
 	case c.ENVIRONMENT_DEVELOPMENT:
