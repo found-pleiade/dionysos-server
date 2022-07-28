@@ -12,6 +12,9 @@ type TestCreate struct {
 	// Target is the URL of the endpoint to create the resource.
 	Target string
 
+	// Headers is a list of headers to send with all the requests.
+	Headers []Header
+
 	// SubTests is a list of SubTest to run.
 	// If Request.Target is empty, the Target is used.
 	// If Request.Target is not empty, the Request.Target is used instead.
@@ -32,7 +35,7 @@ func (test TestCreate) Run(t *testing.T) {
 		}
 
 		t.Run(subtest.Name, func(t *testing.T) {
-			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body)
+			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body, append(subtest.Headers, test.Headers...))
 			if err != nil {
 				t.Error(err)
 			}

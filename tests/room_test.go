@@ -19,6 +19,10 @@ func (c CreateResponseRoom) TargetURI(body []byte) (string, error) {
 	return c.URI, err
 }
 
+func (c CreateResponseRoom) Headers(body []byte) ([]utils.Header, error) {
+	return []utils.Header{}, nil
+}
+
 var roomURL = "/rooms"
 var roomCreateRequest = utils.Request{Method: http.MethodPost, Target: roomURL, Body: `{"name":"test"}`}
 
