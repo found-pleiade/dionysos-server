@@ -37,7 +37,7 @@ func CreateRoom(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, utils.CreateURIResponse("/rooms/"+fmt.Sprint(room.ID)))
+	c.JSON(http.StatusCreated, utils.CreateResponse{URI: "/rooms/" + fmt.Sprint(room.ID)})
 }
 
 // GetRoom returns a room from the database

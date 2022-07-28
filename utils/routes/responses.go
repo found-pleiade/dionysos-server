@@ -1,11 +1,6 @@
 package utils
 
-type URIResponse struct {
-	URI string `json:"uri"`
-}
-
-func CreateURIResponse(uri string) *URIResponse {
-	return &URIResponse{
-		URI: uri,
-	}
+type CreateResponse struct {
+	URI      string `json:"uri"`
+	Password string `json:"password,omitempty"`
 }

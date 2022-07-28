@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,6 +20,7 @@ import (
 // CreateUser creates a user in the database
 func CreateUser(c *gin.Context) {
 	var user models.User
+	rand.Seed(time.Now().UnixNano())
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
@@ -29,6 +31,11 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	// Create 64 bytes random password
+	password := make([]byte, 32)
+	rand.Read(password)
+	user.Password = fmt.Sprintf("%x", password)
+
 	err := db.WithContext(ctx).Create(&user).Error
 
 	if err != nil {
@@ -37,7 +44,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, utils.CreateURIResponse("/users/"+fmt.Sprint(user.ID)))
+	c.JSON(http.StatusCreated, utils.CreateResponse{URI: "/users/" + fmt.Sprint(user.ID), Password: user.Password})
 }
 
 // GetUser returns a user from the database
