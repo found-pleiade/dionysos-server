@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"path"
@@ -26,13 +25,7 @@ func (c CreateResponseUser) Headers(body []byte) ([]utils.Header, error) {
 		return nil, err
 	}
 
-	id := path.Base(c.URI)
-	password := c.Password
-	authHeader := base64.StdEncoding.EncodeToString([]byte(id + ":" + password))
-
-	return []utils.Header{
-		{Key: "Authorization", Value: "Basic " + authHeader}}, nil
-
+	return utils.GetBasicAuthHeader(path.Base(c.URI), c.Password)
 }
 
 var userURL = "/users"

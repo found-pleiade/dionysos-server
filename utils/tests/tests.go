@@ -70,8 +70,11 @@ func CreateTestUser(user models.User) ([]Header, error) {
 		return nil, err
 	}
 
-	id := path.Base(c.URI)
-	password := c.Password
+	return GetBasicAuthHeader(path.Base(c.URI), c.Password)
+}
+
+// GetBasicAuthHeader returns the Authorization header for a given id and password.
+func GetBasicAuthHeader(id, password string) ([]Header, error) {
 	authHeader := base64.StdEncoding.EncodeToString([]byte(id + ":" + password))
 
 	return []Header{
