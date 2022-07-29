@@ -36,17 +36,22 @@ func (test TestRUD) Run(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	headers, err := test.CreateResponse.Headers(w.Body.Bytes())
-	if err != nil {
-		t.Error(err)
-	}
 
 	// Then run the tests.
 	for _, subtest := range test.SubTests {
+		var headers []Header
 		t.Run(subtest.Name, func(t *testing.T) {
 			url := uri + subtest.Request.Target
 
-			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body, append(headers, subtest.Headers...))
+			if subtest.Headers != nil {
+				headers = subtest.Headers
+			} else {
+				headers, err = test.CreateResponse.Headers(w.Body.Bytes())
+				if err != nil {
+					t.Error(err)
+				}
+			}
+			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body, headers)
 			if err != nil {
 				t.Error(err)
 			}

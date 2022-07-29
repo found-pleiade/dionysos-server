@@ -24,6 +24,7 @@ type TestCreate struct {
 // Runs a series of tests for the Create type endpoint.
 func (test TestCreate) Run(t *testing.T) {
 	disableLogs()
+	var headers []Header
 
 	for _, subtest := range test.SubTests {
 		var url string
@@ -34,8 +35,14 @@ func (test TestCreate) Run(t *testing.T) {
 			url = test.Target
 		}
 
+		if subtest.Headers != nil {
+			headers = subtest.Headers
+		} else {
+			headers = test.Headers
+		}
+
 		t.Run(subtest.Name, func(t *testing.T) {
-			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body, append(subtest.Headers, test.Headers...))
+			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body, headers)
 			if err != nil {
 				t.Error(err)
 			}
