@@ -23,17 +23,17 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 
 	r := router.Group(basePath)
 	{
-		// We should not use the basicAuth middleware for the /users endpoint because it is used to create the user.
+		// We should not use the authentication middleware for the /users endpoint because the password is generated during the user creation.
 		r.POST("/users", CreateUser)
 
-		userRouter := r.Group("/users", basicAuth)
+		userRouter := r.Group("/users", authentication)
 		{
 			userRouter.GET("/:id", GetUser)
 			userRouter.PATCH("/:id", UpdateUser)
 			userRouter.DELETE("/:id", DeleteUser)
 		}
 
-		roomRouter := r.Group("/rooms", basicAuth)
+		roomRouter := r.Group("/rooms", authentication)
 		{
 			roomRouter.POST("", CreateRoom)
 			roomRouter.GET("/:id", GetRoom)
@@ -52,7 +52,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 }
 
 // Middleware to authenticate users.
-func basicAuth(c *gin.Context) {
+func authentication(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 	// Extract the id and password from the request Authorization header.
@@ -75,16 +75,15 @@ func basicAuth(c *gin.Context) {
 		passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1)
 
 		if passwordMatch {
-			c.Set("id", id)
+			c.Set("requestAuthor", user)
 			c.Next()
 			return
 		}
 	}
 
-	// If the Authentication header is not present, is invalid, or the
-	// password is wrong, then set a WWW-Authenticate
-	// header to inform the client that we expect them to use basic
-	// authentication and send a 401 Unauthorized response.
+	// If the Authentication header is not present, is invalid, or thepassword is wrong, then
+	// set a WWW-Authenticate header to inform the client that we expect them
+	// to use basic authentication and send a 401 Unauthorized response.
 	c.Header("WWW-Authenticate", `Basic id:password charset="UTF-8"`)
 	c.AbortWithStatus(http.StatusUnauthorized)
 }
