@@ -3,14 +3,19 @@ package utils
 
 import (
 	"bytes"
+	"encoding/base64"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"path"
 	"testing"
 
+	"github.com/Brawdunoir/dionysos-server/models"
 	"github.com/Brawdunoir/dionysos-server/routes"
+	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
+	"github.com/goccy/go-json"
 )
 
 var router = routes.SetupRouter(gin.New())
@@ -45,6 +50,32 @@ type Request struct {
 type Header struct {
 	Key   string
 	Value string
+}
+
+// CreateTestUser creates a new user for tests and returns the authorization header associated to the user.
+func CreateTestUser(user models.User) ([]Header, error) {
+	var c utils.CreateResponse
+
+	body, err := json.Marshal(user)
+	if err != nil {
+		return nil, err
+	}
+	res, err := executeRequest(http.MethodPost, "/users", string(body), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(res.Body.Bytes(), &c)
+	if err != nil {
+		return nil, err
+	}
+
+	id := path.Base(c.URI)
+	password := c.Password
+	authHeader := base64.StdEncoding.EncodeToString([]byte(id + ":" + password))
+
+	return []Header{
+		{Key: "Authorization", Value: "Basic " + authHeader}}, nil
 }
 
 // disableLogs to remove logs from default logger during tests.

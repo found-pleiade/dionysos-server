@@ -7,14 +7,12 @@ import (
 	"path"
 	"testing"
 
+	utils_routes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	utils "github.com/Brawdunoir/dionysos-server/utils/tests"
 )
 
 // CreateResponseUser allows to map the response of the CreateUser request and get the key for further requests.
-type CreateResponseUser struct {
-	URI      string `json:"uri"`
-	Password string `json:"password"`
-}
+type CreateResponseUser utils_routes.CreateResponse
 
 func (c CreateResponseUser) TargetURI(body []byte) (string, error) {
 	err := json.Unmarshal(body, &c)
