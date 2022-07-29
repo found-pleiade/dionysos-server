@@ -24,6 +24,7 @@ func TestAuthenticate(t *testing.T) {
 			{Name: "Wrong password", Request: utils.Request{Method: method}, ResponseCode: http.StatusUnauthorized, Headers: utils.GetBasicAuthHeader(id, "password"), ResponseBodyRegex: `{"error":"User not authorized"}`},
 			{Name: "User not found", Request: utils.Request{Method: method}, ResponseCode: http.StatusNotFound, Headers: utils.GetBasicAuthHeader("987654321", "password"), ResponseBodyRegex: `{"error":"User not found"}`},
 			{Name: "Empty authorization header", Request: utils.Request{Method: method}, ResponseCode: http.StatusUnauthorized, Headers: []utils.Header{}, ResponseBodyRegex: `{"error":"User not authorized"}`},
+			{Name: "Not well formed authorization header", Request: utils.Request{Method: method}, ResponseCode: http.StatusUnauthorized, Headers: []utils.Header{{Key: "Authorization", Value: "apikey xxx"}}, ResponseBodyRegex: `{"error":"User not authorized"}`},
 		},
 	}
 
