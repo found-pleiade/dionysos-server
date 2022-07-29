@@ -29,7 +29,7 @@ var roomCreateRequest = utils.Request{Method: http.MethodPost, Target: roomURL, 
 // TestCreateRoom tests the CreateRoom function.
 func TestCreateRoom(t *testing.T) {
 	// Create the user that will be used to pursue the tests.
-	headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -59,7 +59,7 @@ func TestCreateRoom(t *testing.T) {
 // TestGetRoom tests the GetRoom function.
 func TestGetRoom(t *testing.T) {
 	// Create the user that will be used to pursue the tests.
-	headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -81,7 +81,7 @@ func TestGetRoom(t *testing.T) {
 // TestUpdateRoom tests the UpdateRoom function.
 func TestUpdateRoom(t *testing.T) {
 	// Create the user that will be used to pursue the tests.
-	headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
 		t.Error(err)
 	}
@@ -117,7 +117,7 @@ func TestUpdateRoom(t *testing.T) {
 // TestDeleteRoom tests the DeleteRoom function.
 func TestDeleteRoom(t *testing.T) {
 	// Create the user that will be used to pursue the tests.
-	headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
 		t.Error(err)
 	}

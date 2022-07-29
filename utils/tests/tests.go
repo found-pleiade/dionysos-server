@@ -53,24 +53,25 @@ type Header struct {
 }
 
 // CreateTestUser creates a new user for tests and returns the authorization header associated to the user.
-func CreateTestUser(user models.User) ([]Header, error) {
+func CreateTestUser(user models.User) (string, []Header, error) {
 	var c utils.CreateResponse
 
 	body, err := json.Marshal(user)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	res, err := executeRequest(http.MethodPost, "/users", string(body), nil)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	err = json.Unmarshal(res.Body.Bytes(), &c)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
+	id := path.Base(c.URI)
 
-	return GetBasicAuthHeader(path.Base(c.URI), c.Password), nil
+	return id, GetBasicAuthHeader(id, c.Password), nil
 }
 
 // GetBasicAuthHeader returns the Authorization header for a given id and password.
