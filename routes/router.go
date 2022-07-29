@@ -85,7 +85,7 @@ func authentication(c *gin.Context) {
 	// set a WWW-Authenticate header to inform the client that we expect them
 	// to use basic authentication and send a 401 Unauthorized response.
 	c.Header("WWW-Authenticate", `Basic id:password charset="UTF-8"`)
-	c.AbortWithStatus(http.StatusUnauthorized)
+	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "User not authorized"})
 }
 
 // Middleware for CORS requests.
