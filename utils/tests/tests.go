@@ -70,15 +70,15 @@ func CreateTestUser(user models.User) ([]Header, error) {
 		return nil, err
 	}
 
-	return GetBasicAuthHeader(path.Base(c.URI), c.Password)
+	return GetBasicAuthHeader(path.Base(c.URI), c.Password), nil
 }
 
 // GetBasicAuthHeader returns the Authorization header for a given id and password.
-func GetBasicAuthHeader(id, password string) ([]Header, error) {
+func GetBasicAuthHeader(id, password string) []Header {
 	authHeader := base64.StdEncoding.EncodeToString([]byte(id + ":" + password))
 
 	return []Header{
-		{Key: "Authorization", Value: "Basic " + authHeader}}, nil
+		{Key: "Authorization", Value: "Basic " + authHeader}}
 }
 
 // disableLogs to remove logs from default logger during tests.

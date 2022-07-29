@@ -25,7 +25,7 @@ func (c CreateResponseUser) Headers(body []byte) ([]utils.Header, error) {
 		return nil, err
 	}
 
-	return utils.GetBasicAuthHeader(path.Base(c.URI), c.Password)
+	return utils.GetBasicAuthHeader(path.Base(c.URI), c.Password), nil
 }
 
 var userURL = "/users"
