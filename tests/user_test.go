@@ -66,6 +66,8 @@ func TestGetUser(t *testing.T) {
 			{Name: "Success", Request: utils.Request{Method: method}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"test"}`},
 			{Name: "Invalid ID", Request: utils.Request{Method: method, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid user ID"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, Target: "987654321"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
+			{Name: "Unauthorized", Request: utils.Request{Method: method}, ResponseCode: http.StatusUnauthorized, Headers: utils.GetBasicAuthHeader("1", "password"), ResponseBodyRegex: `{"error":"User not authorized"}`},
+			{Name: "Empty authorization header", Request: utils.Request{Method: method}, ResponseCode: http.StatusUnauthorized, Headers: []utils.Header{}, ResponseBodyRegex: `{"error":"User not authorized"}`},
 		},
 	}
 	test.Run(t)
@@ -95,7 +97,10 @@ func TestUpdateUser(t *testing.T) {
 			{Name: "Exactly max caracters", Request: utils.Request{Method: method, Body: `{"name":"xxxxxxxxxxxxxxxxxxxx"}`}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
 			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"xxxxxxxxxxxxxxxxxxxx"}`},
 			{Name: "Invalid ID", Request: utils.Request{Method: method, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid user ID"}`},
-			{Name: "Not found", Request: utils.Request{Method: method, Target: "987654321", Body: `{"name":"test2"}`}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
+			{Name: "Unauthorized to patch another user", Request: utils.Request{Method: method, Target: "987654321", Body: `{"name":"test2"}`}, ResponseCode: http.StatusUnauthorized, ResponseBodyRegex: `{"error":"User not authorized"}`},
+			{Name: "Wrong password", Request: utils.Request{Method: method, Target: "1", Body: `{"name":"test2"}`}, ResponseCode: http.StatusUnauthorized, Headers: utils.GetBasicAuthHeader("1", "password"), ResponseBodyRegex: `{"error":"User not authorized"}`},
+			{Name: "Not found in authentication", Request: utils.Request{Method: method, Body: `{"name":"test2"}`}, ResponseCode: http.StatusNotFound, Headers: utils.GetBasicAuthHeader("987654321", "password"), ResponseBodyRegex: `{"error":"User not found"}`},
+			{Name: "Empty authorization header", Request: utils.Request{Method: method, Body: `{"name":"test2"}`}, ResponseCode: http.StatusUnauthorized, Headers: []utils.Header{}, ResponseBodyRegex: `{"error":"User not authorized"}`},
 		},
 	}
 	test.Run(t)
@@ -109,10 +114,13 @@ func TestDeleteUser(t *testing.T) {
 		CreateRequest:  userCreateRequest,
 		CreateResponse: CreateResponseUser{},
 		SubTests: []utils.SubTest{
+			{Name: "Empty authorization header", Request: utils.Request{Method: method}, Headers: []utils.Header{}, ResponseCode: http.StatusUnauthorized, ResponseBodyRegex: `{"error":"User not authorized"}`},
+			{Name: "Unauthorized to delete another user", Request: utils.Request{Method: method, Target: "987654321"}, ResponseCode: http.StatusUnauthorized, ResponseBodyRegex: `{"error":"User not authorized"}`},
+			{Name: "Wrong password", Request: utils.Request{Method: method, Target: "1", Body: `{"name":"test2"}`}, Headers: utils.GetBasicAuthHeader("1", "password"), ResponseCode: http.StatusUnauthorized, ResponseBodyRegex: `{"error":"User not authorized"}`},
+			{Name: "Not found in authentication", Request: utils.Request{Method: method, Target: "987654321", Body: `{"name":"test2"}`}, Headers: utils.GetBasicAuthHeader("987654321", "password"), ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
 			{Name: "Invalid ID", Request: utils.Request{Method: method, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid user ID"}`},
 			{Name: "Success", Request: utils.Request{Method: method}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
 			{Name: "Correctly deleted", Request: utils.Request{Method: http.MethodGet}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
-			{Name: "Not found", Request: utils.Request{Method: method, Target: "987654321"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
 		},
 	}
 	test.Run(t)
