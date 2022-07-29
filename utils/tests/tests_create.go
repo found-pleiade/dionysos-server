@@ -35,8 +35,8 @@ func (test TestCreate) Run(t *testing.T) {
 			url = test.Target
 		}
 
-		if subtest.Headers != nil {
-			headers = subtest.Headers
+		if subtest.Request.Headers != nil {
+			headers = subtest.Request.Headers
 		} else {
 			headers = test.Headers
 		}

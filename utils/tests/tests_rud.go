@@ -43,8 +43,8 @@ func (test TestRUD) Run(t *testing.T) {
 		t.Run(subtest.Name, func(t *testing.T) {
 			url := uri + subtest.Request.Target
 
-			if subtest.Headers != nil {
-				headers = subtest.Headers
+			if subtest.Request.Headers != nil {
+				headers = subtest.Request.Headers
 			} else {
 				headers, err = test.CreateResponse.Headers(w.Body.Bytes())
 				if err != nil {

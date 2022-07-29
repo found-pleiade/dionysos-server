@@ -33,20 +33,31 @@ type ICreateResponse interface {
 
 // SubTest is an atomic test that includes a request and its intended response.
 type SubTest struct {
-	Name              string
-	Request           Request
-	Headers           []Header
-	ResponseCode      int
+	// Name is the name of the test.
+	Name string
+	// Request is the request to send.
+	Request Request
+	// ResponseCode is the expected response code.
+	ResponseCode int
+	// ResponseBodyRegex is the expected response body regex.
 	ResponseBodyRegex interface{}
 }
 
-// Request a simple request to be sent to the router.
+// Request is a simple request to be sent to the router.
 type Request struct {
+	// Method is the HTTP method to use.
 	Method string
+	// Target is append to the Test Target URL.
 	Target string
-	Body   string
+	// Body is the body of the request.
+	Body string
+	// Headers is a list of headers to send with the request.
+	// If not nil, they take precedence over the Test headers.
+	// If nil, the Test headers are used instead.
+	Headers []Header
 }
 
+// Header symbolizes a header to be sent with a request.
 type Header struct {
 	Key   string
 	Value string
