@@ -75,7 +75,7 @@ func authentication(c *gin.Context) {
 		passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1)
 
 		if passwordMatch {
-			c.Set("requestAuthor", user)
+			c.Set(variables.USER_CONTEXT_KEY, user)
 			c.Next()
 			return
 		}

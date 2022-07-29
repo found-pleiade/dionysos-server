@@ -6,3 +6,5 @@ const (
 	ENVIRONMENT_DEVELOPMENT = "DEV"
 	ENVIRONMENT_TESTING     = "TEST"
 )
+
+const USER_CONTEXT_KEY = "requestAuthor"
