@@ -3,9 +3,9 @@ package routes
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -13,12 +13,12 @@ import (
 	"github.com/Brawdunoir/dionysos-server/models"
 	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // CreateUser creates a user in the database
 func CreateUser(c *gin.Context) {
 	var user models.User
+	rand.Seed(time.Now().UnixNano())
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
@@ -29,6 +29,11 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	// Create 32 bytes random password
+	password := make([]byte, 32)
+	rand.Read(password)
+	user.Password = fmt.Sprintf("%x", password)
+
 	err := db.WithContext(ctx).Create(&user).Error
 
 	if err != nil {
@@ -37,7 +42,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, utils.CreateURIResponse("/users/"+fmt.Sprint(user.ID)))
+	c.JSON(http.StatusCreated, utils.CreateResponse{URI: "/users/" + fmt.Sprint(user.ID), Password: user.Password})
 }
 
 // GetUser returns a user from the database
@@ -67,7 +72,11 @@ func GetUser(c *gin.Context) {
 // UpdateUser updates a user in the database
 func UpdateUser(c *gin.Context) {
 	var userUpdate models.UserUpdate
-	var patchedUser models.User
+	patchedUser, err := utils.ExtractUserFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found in context. Has it been set in the middleware?"})
+		log.Printf("Failed to extract user from context: %v", err)
+	}
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
@@ -78,24 +87,17 @@ func UpdateUser(c *gin.Context) {
 		log.Printf("Failed to convert user ID: %v", err)
 	}
 
-	// Test if data is valid
+	// Assert the request is coming from the right user.
+	if err := utils.AssertUser(c, id); err != nil {
+		log.Printf("Failed to assert user: %v", err)
+		return
+	}
+
+	// Test if data is valid.
 	if err := c.ShouldBindJSON(&userUpdate); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Printf("Failed to bind JSON: %v", err)
 		return
-	}
-
-	err = db.WithContext(ctx).First(&patchedUser, id).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-			log.Printf("Failed to find document: %v", err)
-			return
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "User not updated"})
-			log.Printf("Failed to modify document: %v", err)
-			return
-		}
 	}
 
 	err = db.WithContext(ctx).Model(&patchedUser).Updates(userUpdate.ToUser()).Error
@@ -117,6 +119,12 @@ func DeleteUser(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		log.Printf("Failed to convert user ID: %v", err)
+	}
+
+	// Assert the request is coming from the right user.
+	if err := utils.AssertUser(c, id); err != nil {
+		log.Printf("Failed to assert user: %v", err)
+		return
 	}
 
 	result := db.WithContext(ctx).Delete(&models.User{}, id)

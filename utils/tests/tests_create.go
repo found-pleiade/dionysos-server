@@ -12,6 +12,9 @@ type TestCreate struct {
 	// Target is the URL of the endpoint to create the resource.
 	Target string
 
+	// Headers is a list of headers to send with all the requests.
+	Headers []Header
+
 	// SubTests is a list of SubTest to run.
 	// If Request.Target is empty, the Target is used.
 	// If Request.Target is not empty, the Request.Target is used instead.
@@ -21,6 +24,7 @@ type TestCreate struct {
 // Runs a series of tests for the Create type endpoint.
 func (test TestCreate) Run(t *testing.T) {
 	disableLogs()
+	var headers []Header
 
 	for _, subtest := range test.SubTests {
 		var url string
@@ -31,8 +35,14 @@ func (test TestCreate) Run(t *testing.T) {
 			url = test.Target
 		}
 
+		if subtest.Request.Headers != nil {
+			headers = subtest.Request.Headers
+		} else {
+			headers = test.Headers
+		}
+
 		t.Run(subtest.Name, func(t *testing.T) {
-			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body)
+			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body, headers)
 			if err != nil {
 				t.Error(err)
 			}

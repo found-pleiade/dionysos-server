@@ -12,6 +12,9 @@ type TestRUD struct {
 	// CreateRequest creates the object against which the tests will run.
 	CreateRequest Request
 
+	// CreateRequestHeaders is a list of headers to send with the Create request.
+	CreateRequestHeaders []Header
+
 	// CreateResponse parses the response from the CreateRequest.
 	// The returned string is used as a prefix URL for SubTests Request.Target.
 	CreateResponse ICreateResponse
@@ -24,7 +27,7 @@ type TestRUD struct {
 func (test TestRUD) Run(t *testing.T) {
 	disableLogs()
 
-	w, err := executeRequest(test.CreateRequest.Method, test.CreateRequest.Target, test.CreateRequest.Body)
+	w, err := executeRequest(test.CreateRequest.Method, test.CreateRequest.Target, test.CreateRequest.Body, test.CreateRequestHeaders)
 	if err != nil {
 		t.Error(err)
 	}
@@ -36,10 +39,19 @@ func (test TestRUD) Run(t *testing.T) {
 
 	// Then run the tests.
 	for _, subtest := range test.SubTests {
+		var headers []Header
 		t.Run(subtest.Name, func(t *testing.T) {
 			url := uri + subtest.Request.Target
 
-			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body)
+			if subtest.Request.Headers != nil {
+				headers = subtest.Request.Headers
+			} else {
+				headers, err = test.CreateResponse.Headers(w.Body.Bytes())
+				if err != nil {
+					t.Error(err)
+				}
+			}
+			w, err := executeRequest(subtest.Request.Method, url, subtest.Request.Body, headers)
 			if err != nil {
 				t.Error(err)
 			}

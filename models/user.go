@@ -5,6 +5,7 @@ import "gorm.io/gorm"
 type User struct {
 	gorm.Model `json:"-"`
 	Name       string `json:"name" binding:"required,gte=2,lte=20"`
+	Password   string `json:"-"`
 }
 
 type UserUpdate struct {
