@@ -29,7 +29,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Create 64 bytes random password
+	// Create 32 bytes random password
 	password := make([]byte, 32)
 	rand.Read(password)
 	user.Password = fmt.Sprintf("%x", password)
@@ -77,7 +77,6 @@ func UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found in context. Has it been set in the middleware?"})
 		log.Printf("Failed to extract user from context: %v", err)
 	}
-
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
