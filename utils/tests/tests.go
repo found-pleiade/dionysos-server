@@ -47,7 +47,7 @@ type SubTest struct {
 type Request struct {
 	// Method is the HTTP method to use.
 	Method string
-	// Target is append to the Test Target URL.
+	// Target is appended to the Test Target URL.
 	Target string
 	// Body is the body of the request.
 	Body string
