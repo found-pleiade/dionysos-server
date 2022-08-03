@@ -25,6 +25,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 	basePath := variables.BasePath
 
 	router.Use(options)
+	router.Use(gin.Recovery())
 
 	// Connect to Redis.
 	redisURL, err := redis.ParseURL(variables.RedisHost)
