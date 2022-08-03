@@ -18,15 +18,21 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
+var redisStore *persist.RedisStore
+
 // SetupRouter sets up the router
 func SetupRouter(router *gin.Engine) *gin.Engine {
 	basePath := variables.BasePath
 
 	router.Use(options)
 
-	redisStore := persist.NewRedisStore(redis.NewClient(&redis.Options{
-		Addr: variables.RedisHost,
-	}))
+	// Connect to Redis.
+	redisURL, err := redis.ParseURL(variables.RedisHost)
+	if err != nil {
+		log.Println("Cannot connect to redis", err)
+	} else {
+		redisStore = persist.NewRedisStore(redis.NewClient(redisURL))
+	}
 
 	r := router.Group(basePath)
 	{
@@ -35,25 +41,44 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 
 		userRouter := r.Group("/users", authentication)
 		{
-			userRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetUser)
-			userRouter.PATCH("/:id", UpdateUser)
-			userRouter.DELETE("/:id", DeleteUser)
+			if redisStore != nil {
+				userRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetUser)
+			} else {
+				userRouter.GET("/:id", GetUser)
+			}
+			userRouter.PATCH("/:id", invalidateCacheURI, UpdateUser)
+			userRouter.DELETE("/:id", invalidateCacheURI, DeleteUser)
 		}
 
 		roomRouter := r.Group("/rooms", authentication)
 		{
 			roomRouter.POST("", CreateRoom)
-			roomRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetRoom)
-			roomRouter.PATCH("/:id", UpdateRoom)
-			roomRouter.DELETE("/:id", DeleteRoom)
-		}
-		r.GET("/version", cache.CacheByRequestURI(redisStore, 60*time.Minute), func(c *gin.Context) {
-			var version string
-			if version = os.Getenv("VERSION"); version == "" {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
+			if redisStore != nil {
+				roomRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetRoom)
+			} else {
+				roomRouter.GET("/:id", GetRoom)
 			}
-			c.String(http.StatusOK, version)
-		})
+			roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
+			roomRouter.DELETE("/:id", invalidateCacheURI, DeleteRoom)
+		}
+		if redisStore != nil {
+			r.GET("/version", cache.CacheByRequestURI(redisStore, 60*time.Minute), func(c *gin.Context) {
+				var version string
+				if version = os.Getenv("VERSION"); version == "" {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
+				}
+				c.String(http.StatusOK, version)
+			})
+		} else {
+			r.GET("/version", func(c *gin.Context) {
+				var version string
+				if version = os.Getenv("VERSION"); version == "" {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
+				}
+				c.String(http.StatusOK, version)
+			})
+		}
+
 	}
 	return router
 }
@@ -106,5 +131,16 @@ func options(c *gin.Context) {
 		c.Next()
 	} else {
 		c.AbortWithStatus(http.StatusOK)
+	}
+}
+
+func invalidateCacheURI(c *gin.Context) {
+	c.Next()
+	code := c.Request.Response.StatusCode
+	if !c.IsAborted() && code >= 200 && code < 300 && redisStore != nil {
+		err := redisStore.Delete(c.Request.RequestURI)
+		if err != nil {
+			log.Printf("Failed to invalidate cache: %v", err)
+		}
 	}
 }
