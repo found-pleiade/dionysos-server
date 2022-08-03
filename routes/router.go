@@ -85,10 +85,6 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 
 // Middleware to authenticate users.
 func authentication(c *gin.Context) {
-	// if variables.Environment == variables.ENVIRONMENT_DEVELOPMENT {
-	// 	return
-	// }
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 	// Extract the id and password from the request Authorization header.
