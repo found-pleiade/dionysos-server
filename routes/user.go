@@ -107,12 +107,6 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// Invalidate cache
-	err = redisStore.Delete(c.Request.RequestURI)
-	if err != nil {
-		log.Printf("Failed to invalidate cache: %v", err)
-	}
-
 	c.JSON(http.StatusNoContent, nil)
 }
 
@@ -143,12 +137,6 @@ func DeleteUser(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		log.Printf("Failed to find document: %v", result.Error)
 		return
-	}
-
-	// Invalidate cache
-	err = redisStore.Delete(c.Request.RequestURI)
-	if err != nil {
-		log.Printf("Failed to invalidate cache: %v", err)
 	}
 
 	c.JSON(http.StatusNoContent, nil)

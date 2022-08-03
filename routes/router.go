@@ -46,8 +46,8 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			} else {
 				userRouter.GET("/:id", GetUser)
 			}
-			userRouter.PATCH("/:id", UpdateUser)
-			userRouter.DELETE("/:id", DeleteUser)
+			userRouter.PATCH("/:id", invalidateCacheURI, UpdateUser)
+			userRouter.DELETE("/:id", invalidateCacheURI, DeleteUser)
 		}
 
 		roomRouter := r.Group("/rooms", authentication)
@@ -58,8 +58,8 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			} else {
 				roomRouter.GET("/:id", GetRoom)
 			}
-			roomRouter.PATCH("/:id", UpdateRoom)
-			roomRouter.DELETE("/:id", DeleteRoom)
+			roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
+			roomRouter.DELETE("/:id", invalidateCacheURI, DeleteRoom)
 		}
 		if redisStore != nil {
 			r.GET("/version", cache.CacheByRequestURI(redisStore, 60*time.Minute), func(c *gin.Context) {
@@ -131,5 +131,15 @@ func options(c *gin.Context) {
 		c.Next()
 	} else {
 		c.AbortWithStatus(http.StatusOK)
+	}
+}
+
+func invalidateCacheURI(c *gin.Context) {
+	c.Next()
+	if redisStore != nil {
+		err := redisStore.Delete(c.Request.RequestURI)
+		if err != nil {
+			log.Printf("Failed to invalidate cache: %v", err)
+		}
 	}
 }
