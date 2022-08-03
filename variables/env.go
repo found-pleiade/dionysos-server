@@ -9,3 +9,6 @@ var BasePath string = os.Getenv("BASE_PATH")
 
 // Environment is the environment of the API. e.g. PROD, DEV, TEST. See const.go for the possible values.
 var Environment string = os.Getenv("ENVIRONMENT")
+
+// RedisHost is the host of the Redis server.
+var RedisHost string = os.Getenv("REDIS_HOST")
