@@ -108,7 +108,10 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	// Invalidate cache
-	redisStore.Delete(c.Request.RequestURI)
+	err = redisStore.Delete(c.Request.RequestURI)
+	if err != nil {
+		log.Printf("Failed to invalidate cache: %v", err)
+	}
 
 	c.JSON(http.StatusNoContent, nil)
 }
@@ -143,7 +146,10 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	// Invalidate cache
-	redisStore.Delete(c.Request.RequestURI)
+	err = redisStore.Delete(c.Request.RequestURI)
+	if err != nil {
+		log.Printf("Failed to invalidate cache: %v", err)
+	}
 
 	c.JSON(http.StatusNoContent, nil)
 }
