@@ -107,6 +107,9 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	// Invalidate cache
+	redisStore.Delete(c.Request.RequestURI)
+
 	c.JSON(http.StatusNoContent, nil)
 }
 
@@ -138,6 +141,9 @@ func DeleteUser(c *gin.Context) {
 		log.Printf("Failed to find document: %v", result.Error)
 		return
 	}
+
+	// Invalidate cache
+	redisStore.Delete(c.Request.RequestURI)
 
 	c.JSON(http.StatusNoContent, nil)
 }
