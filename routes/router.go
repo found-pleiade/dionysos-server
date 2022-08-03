@@ -12,7 +12,10 @@ import (
 
 	"github.com/Brawdunoir/dionysos-server/models"
 	"github.com/Brawdunoir/dionysos-server/variables"
+	cache "github.com/chenyahui/gin-cache"
+	"github.com/chenyahui/gin-cache/persist"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 // SetupRouter sets up the router
@@ -21,6 +24,10 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 
 	router.Use(options)
 
+	redisStore := persist.NewRedisStore(redis.NewClient(&redis.Options{
+		Addr: variables.RedisHost,
+	}))
+
 	r := router.Group(basePath)
 	{
 		// We should not use the authentication middleware for the /users endpoint because the password is generated during the user creation.
@@ -28,7 +35,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 
 		userRouter := r.Group("/users", authentication)
 		{
-			userRouter.GET("/:id", GetUser)
+			userRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetUser)
 			userRouter.PATCH("/:id", UpdateUser)
 			userRouter.DELETE("/:id", DeleteUser)
 		}
@@ -36,11 +43,11 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		roomRouter := r.Group("/rooms", authentication)
 		{
 			roomRouter.POST("", CreateRoom)
-			roomRouter.GET("/:id", GetRoom)
+			roomRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetRoom)
 			roomRouter.PATCH("/:id", UpdateRoom)
 			roomRouter.DELETE("/:id", DeleteRoom)
 		}
-		r.GET("/version", func(c *gin.Context) {
+		r.GET("/version", cache.CacheByRequestURI(redisStore, 60*time.Minute), func(c *gin.Context) {
 			var version string
 			if version = os.Getenv("VERSION"); version == "" {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
