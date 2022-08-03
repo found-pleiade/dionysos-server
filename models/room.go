@@ -1,19 +1,33 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+)
 
 type Room struct {
-	gorm.Model `json:"-"`
-	Name       string `json:"name" binding:"required,gte=2,lte=20"`
+	ID        uint         `gorm:"primarykey" json:"-"`
+	CreatedAt time.Time    `json:"-"`
+	UpdatedAt time.Time    `json:"-"`
+	DeletedAt sql.NullTime `gorm:"index" json:"-"`
+	Name      string       `json:"name" binding:"required,gte=2,lte=20" example:"BirthdayParty"`
+	OwnerID   uint         `json:"owner,omitempty"`
+	UsersID   []uint       `json:"users,omitempty"`
 }
 
 type RoomUpdate struct {
-	Name string `json:"name,omitempty" binding:"gte=2,lte=20"`
+	ID         uint   `gorm:"primarykey" json:"-"`
+	Name       string `json:"name,omitempty" binding:"gte=2,lte=20"`
+	OwnerID    uint   `json:"owner,omitempty"`
+	NewOwnerID uint   `json:"new_owner"`
+	UsersID    []uint `json:"users,omitempty"`
 }
 
 // ToRoom converts a RoomUpdate to a Room
 func (ru *RoomUpdate) ToRoom() *Room {
 	return &Room{
-		Name: ru.Name,
+		Name:    ru.Name,
+		OwnerID: ru.OwnerID,
+		UsersID: ru.UsersID,
 	}
 }

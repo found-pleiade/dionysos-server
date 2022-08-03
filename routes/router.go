@@ -21,6 +21,7 @@ import (
 )
 
 var redisStore *persist.RedisStore
+
 // Database pointer that will be used in the routes.
 var db *gorm.DB = database.DB
 
@@ -60,14 +61,14 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		roomRouter := r.Group("/rooms", authentication)
 		{
 			roomRouter.POST("", CreateRoom)
+			roomRouter.POST("/:id/connect", ConnectUserToRoom)
+			roomRouter.POST("/:id/disconnect", DisconnectUserFromRoom)
 			if redisStore != nil {
 				roomRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetRoom)
 				roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
-				roomRouter.DELETE("/:id", invalidateCacheURI, DeleteRoom)
 			} else {
 				roomRouter.GET("/:id", GetRoom)
 				roomRouter.PATCH("/:id", UpdateRoom)
-				roomRouter.DELETE("/:id", DeleteRoom)
 			}
 		}
 		r.GET("/version", func(c *gin.Context) {
