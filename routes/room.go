@@ -86,7 +86,7 @@ func UpdateRoom(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
-		log.Printf("Failed to extract user from context: %v", err)
+		log.Printf("Failed to convert room ID: %v", err)
 		return
 	}
 
