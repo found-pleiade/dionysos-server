@@ -11,8 +11,8 @@ type Room struct {
 	UpdatedAt time.Time    `json:"-"`
 	DeletedAt sql.NullTime `gorm:"index" json:"-"`
 	Name      string       `json:"name" binding:"required,gte=2,lte=20" example:"BirthdayParty"`
-	OwnerID   uint         `json:"owner,omitempty"`
-	UsersID   []uint       `json:"users,omitempty"`
+	OwnerID   uint         `json:"ownerID,omitempty"`
+	UsersID   []uint       `json:"usersID,omitempty"`
 }
 
 type RoomUpdate struct {
