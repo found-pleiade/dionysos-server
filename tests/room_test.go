@@ -157,3 +157,47 @@ func TestDeleteRoom(t *testing.T) {
 	}
 	test.Run(t)
 }
+
+// TestConnectUserToRoom tests the ConnectUserToRoom function.
+func TestConnectUserToRoom(t *testing.T) {
+	// Create the user that will be used to pursue the tests.
+	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	if err != nil {
+		t.Error(err)
+	}
+
+	method := http.MethodPost
+	test := utils.TestRUD{
+		CreateRequest:        roomCreateRequest,
+		CreateRequestHeaders: headers,
+		CreateResponse:       CreateResponseRoom{},
+		SubTests: []utils.SubTest{
+			{Name: "Success", Request: utils.Request{Method: method, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: ``},
+			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
+			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
+		},
+	}
+	test.Run(t)
+}
+
+// TestDisconnectUserFromRoom tests the DisonnectUserFromRoom function.
+func TestDiconnectUserFromRoom(t *testing.T) {
+	// Create the user that will be used to pursue the tests.
+	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	if err != nil {
+		t.Error(err)
+	}
+
+	method := http.MethodPost
+	test := utils.TestRUD{
+		CreateRequest:        roomCreateRequest,
+		CreateRequestHeaders: headers,
+		CreateResponse:       CreateResponseRoom{},
+		SubTests: []utils.SubTest{
+			{Name: "Success", Request: utils.Request{Method: method, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: ``},
+			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
+			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
+		},
+	}
+	test.Run(t)
+}
