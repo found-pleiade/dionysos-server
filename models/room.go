@@ -16,11 +16,9 @@ type Room struct {
 }
 
 type RoomUpdate struct {
-	ID         uint   `gorm:"primarykey" json:"-"`
 	Name       string `json:"name,omitempty" binding:"gte=2,lte=20"`
-	OwnerID    uint   `json:"owner,omitempty"`
-	NewOwnerID uint   `json:"new_owner"`
-	UsersID    []uint `json:"users,omitempty"`
+	OwnerID    uint   `json:"ownerID,omitempty"`
+	UsersID    []uint `json:"usersID,omitempty"`
 }
 
 // ToRoom converts a RoomUpdate to a Room
