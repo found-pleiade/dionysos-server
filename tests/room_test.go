@@ -130,34 +130,6 @@ func TestUpdateRoom(t *testing.T) {
 	test.Run(t)
 }
 
-// TestDeleteRoom tests the DeleteRoom function.
-func TestDeleteRoom(t *testing.T) {
-	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
-	if err != nil {
-		t.Error(err)
-	}
-
-	// Create the user that will be used to pursue the tests.
-	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
-	if err != nil {
-		t.Error(err)
-	}
-
-	method := http.MethodDelete
-	test := utils.TestRUD{
-		CreateRequest:        roomCreateRequest,
-		CreateRequestHeaders: headers,
-		CreateResponse:       CreateResponseRoom{},
-		SubTests: []utils.SubTest{
-			{Name: "Success", Request: utils.Request{Method: method, Headers: headers}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
-			{Name: "Correctly deleted", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
-			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
-			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
-		},
-	}
-	test.Run(t)
-}
-
 // TestConnectUserToRoom tests the ConnectUserToRoom function.
 func TestConnectUserToRoom(t *testing.T) {
 	// Create the user that will be used to pursue the tests.
