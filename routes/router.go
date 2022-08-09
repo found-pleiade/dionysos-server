@@ -21,6 +21,7 @@ import (
 )
 
 var redisStore *persist.RedisStore
+// Database pointer that will be used in the routes.
 var db *gorm.DB = database.DB
 
 // SetupRouter sets up the router
