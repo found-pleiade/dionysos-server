@@ -62,23 +62,13 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
 			roomRouter.DELETE("/:id", invalidateCacheURI, DeleteRoom)
 		}
-		if redisStore != nil {
-			r.GET("/version", cache.CacheByRequestURI(redisStore, 60*time.Minute), func(c *gin.Context) {
-				var version string
-				if version = os.Getenv("VERSION"); version == "" {
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
-				}
-				c.String(http.StatusOK, version)
-			})
-		} else {
-			r.GET("/version", func(c *gin.Context) {
-				var version string
-				if version = os.Getenv("VERSION"); version == "" {
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
-				}
-				c.String(http.StatusOK, version)
-			})
-		}
+		r.GET("/version", func(c *gin.Context) {
+			var version string
+			if version = os.Getenv("VERSION"); version == "" {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
+			}
+			c.String(http.StatusOK, version)
+		})
 
 	}
 	return router
