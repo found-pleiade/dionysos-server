@@ -18,16 +18,12 @@ type Room struct {
 }
 
 type RoomUpdate struct {
-	Name    string        `json:"name,omitempty" binding:"gte=2,lte=20"`
-	OwnerID uint          `json:"ownerID,omitempty"`
-	UsersID pq.Int64Array `json:"usersID,omitempty"`
+	Name string `json:"name,omitempty" binding:"gte=2,lte=20"`
 }
 
 // ToRoom converts a RoomUpdate to a Room
 func (ru *RoomUpdate) ToRoom() *Room {
 	return &Room{
-		Name:    ru.Name,
-		OwnerID: ru.OwnerID,
-		UsersID: ru.UsersID,
+		Name: ru.Name,
 	}
 }
