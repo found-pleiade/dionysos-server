@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/Brawdunoir/dionysos-server/models"
-	"github.com/Brawdunoir/dionysos-server/routes"
 	utils_routes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	utils "github.com/Brawdunoir/dionysos-server/utils/tests"
 )
@@ -29,8 +28,6 @@ var roomCreateRequest = utils.Request{Method: http.MethodPost, Target: roomURL, 
 
 // TestCreateRoom tests the CreateRoom function.
 func TestCreateRoom(t *testing.T) {
-	utils.ResetTable(routes.GetDB(), &models.User{}, &models.Room{})
-
 	// Create the user that will be used to pursue the tests.
 	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
@@ -61,8 +58,6 @@ func TestCreateRoom(t *testing.T) {
 
 // TestGetRoom tests the GetRoom function.
 func TestGetRoom(t *testing.T) {
-	utils.ResetTable(routes.GetDB(), &models.User{}, &models.Room{})
-
 	// Create the user that will be used to pursue the tests.
 	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
@@ -85,8 +80,6 @@ func TestGetRoom(t *testing.T) {
 
 // TestUpdateRoom tests the UpdateRoom function.
 func TestUpdateRoom(t *testing.T) {
-	utils.ResetTable(routes.GetDB(), &models.User{}, &models.Room{})
-
 	// Create the user that will be used to pursue the tests.
 	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
@@ -123,8 +116,6 @@ func TestUpdateRoom(t *testing.T) {
 
 // TestDeleteRoom tests the DeleteRoom function.
 func TestDeleteRoom(t *testing.T) {
-	utils.ResetTable(routes.GetDB(), &models.User{}, &models.Room{})
-
 	// Create the user that will be used to pursue the tests.
 	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
