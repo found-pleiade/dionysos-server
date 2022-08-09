@@ -10,15 +10,18 @@ import (
 	"os"
 	"time"
 
+	"github.com/Brawdunoir/dionysos-server/database"
 	"github.com/Brawdunoir/dionysos-server/models"
 	"github.com/Brawdunoir/dionysos-server/variables"
 	cache "github.com/chenyahui/gin-cache"
 	"github.com/chenyahui/gin-cache/persist"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
 )
 
 var redisStore *persist.RedisStore
+var db *gorm.DB = database.DB
 
 // SetupRouter sets up the router
 func SetupRouter(router *gin.Engine) *gin.Engine {
