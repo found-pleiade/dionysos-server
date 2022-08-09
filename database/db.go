@@ -11,6 +11,8 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+var DB *gorm.DB = GetDatabase()
+
 // GetDatabase returns a database instance
 func GetDatabase() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(createDSN()), createConfig())

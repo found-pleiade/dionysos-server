@@ -6,9 +6,4 @@ import (
 )
 
 // db is the database used by the api across all routes.
-var db *gorm.DB = database.GetDatabase() //nolint:deadcode,unused,varcheck
-
-// GetDB returns the database instance.
-func GetDB() *gorm.DB {
-	return db
-}
+var db *gorm.DB = database.DB //nolint:deadcode,unused,varcheck
