@@ -97,7 +97,7 @@ func GetBasicAuthHeader(id, password string) []Header {
 
 // ResetTable resets a table in the database.
 func ResetTable(db *gorm.DB, table ...interface{}) error {
-	// For each table, delete it.
+	// Drop all tables.
 	for _, t := range table {
 		if db.Migrator().HasTable(t) {
 			err := db.Migrator().DropTable(t)
