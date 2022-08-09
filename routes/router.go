@@ -61,14 +61,16 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		roomRouter := r.Group("/rooms", authentication)
 		{
 			roomRouter.POST("", CreateRoom)
-			roomRouter.POST("/:id/connect", invalidateCacheURI, ConnectUserToRoom)
-			roomRouter.POST("/:id/disconnect", invalidateCacheURI, DisconnectUserFromRoom)
 			if redisStore != nil {
 				roomRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetRoom)
 				roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
+				roomRouter.POST("/:id/connect", invalidateCacheURI, ConnectUserToRoom)
+				roomRouter.POST("/:id/disconnect", invalidateCacheURI, DisconnectUserFromRoom)
 			} else {
 				roomRouter.GET("/:id", GetRoom)
 				roomRouter.PATCH("/:id", UpdateRoom)
+				roomRouter.POST("/:id/connect", ConnectUserToRoom)
+				roomRouter.POST("/:id/disconnect", DisconnectUserFromRoom)
 			}
 		}
 		r.GET("/version", func(c *gin.Context) {
