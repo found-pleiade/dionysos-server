@@ -13,7 +13,7 @@ import (
 
 var DB *gorm.DB = setupDatabase()
 
-// setupDatabase returns a setuped database instance
+// setupDatabase returns a setuped database instance.
 func setupDatabase() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(createDSN()), createConfig())
 	if err != nil {
