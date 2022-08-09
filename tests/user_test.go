@@ -35,7 +35,10 @@ var userCreateRequest = utils.Request{Method: http.MethodPost, Target: userURL, 
 
 // TestCreateUser tests the CreateUser function.
 func TestCreateUser(t *testing.T) {
-	utils.ResetTable(database.DB, &models.User{})
+	err := utils.ResetTable(database.DB, &models.User{})
+	if err != nil {
+		t.Error(err)
+	}
 	method := http.MethodPost
 
 	test := utils.TestCreate{
@@ -60,7 +63,10 @@ func TestCreateUser(t *testing.T) {
 
 // TestGetUser tests the GetUser function.
 func TestGetUser(t *testing.T) {
-	utils.ResetTable(database.DB, &models.User{})
+	err := utils.ResetTable(database.DB, &models.User{})
+	if err != nil {
+		t.Error(err)
+	}
 	method := http.MethodGet
 
 	test := utils.TestRUD{
@@ -77,7 +83,10 @@ func TestGetUser(t *testing.T) {
 
 // TestUpdateUser tests the UpdateUser function.
 func TestUpdateUser(t *testing.T) {
-	utils.ResetTable(database.DB, &models.User{})
+	err := utils.ResetTable(database.DB, &models.User{})
+	if err != nil {
+		t.Error(err)
+	}
 	method := http.MethodPatch
 
 	test := utils.TestRUD{
@@ -108,7 +117,10 @@ func TestUpdateUser(t *testing.T) {
 
 // TestDeleteUser tests the DeleteUser function.
 func TestDeleteUser(t *testing.T) {
-	utils.ResetTable(database.DB, &models.User{})
+	err := utils.ResetTable(database.DB, &models.User{})
+	if err != nil {
+		t.Error(err)
+	}
 	method := http.MethodDelete
 
 	test := utils.TestRUD{
