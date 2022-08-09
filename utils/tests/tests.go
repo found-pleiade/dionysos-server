@@ -96,20 +96,23 @@ func GetBasicAuthHeader(id, password string) []Header {
 }
 
 // ResetTable reset a table in the database .
-func ResetTable(db *gorm.DB, table interface{}) error {
-	if db.Migrator().HasTable(table) {
-		err := db.Migrator().DropTable(table)
-		if err != nil {
-			return err
+func ResetTable(db *gorm.DB, table ...interface{}) error {
+	// Foreach table, delete it.
+	for _, t := range table {
+		if db.Migrator().HasTable(t) {
+			err := db.Migrator().DropTable(t)
+			if err != nil {
+				return err
+			}
+			err = db.AutoMigrate(t)
+			if err != nil {
+				return err
+			}
+		} else {
+			return errors.New("table not found")
 		}
-		err = db.AutoMigrate(table)
-		if err != nil {
-			return err
-		}
-
-		return nil
 	}
-	return errors.New("table not found")
+	return nil
 }
 
 // disableLogs to remove logs from default logger during tests.
