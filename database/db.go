@@ -11,15 +11,16 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// GetDatabase returns a database instance
-func GetDatabase() *gorm.DB {
+var DB *gorm.DB = setupDatabase()
+
+// setupDatabase returns a setuped database instance.
+func setupDatabase() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(createDSN()), createConfig())
 	if err != nil {
 		log.Fatal("Failed to connect to the database: ", err)
 	}
 
-	// nolint:errcheck
-	db.AutoMigrate(&models.User{}, &models.Room{})
+	err = db.AutoMigrate(&models.User{}, &models.Room{})
 	if err != nil {
 		log.Fatal("Failed to migrate database: ", err)
 	}
