@@ -1,10 +1,14 @@
 package utils
 
-import "errors"
+import (
+	"errors"
 
-func RemoveUintFromSlice(slice []uint, value uint) ([]uint, error) {
+	"github.com/lib/pq"
+)
+
+func RemoveUintFromSlice(slice pq.Int64Array, value uint) (pq.Int64Array, error) {
 	for i, v := range slice {
-		if v == value {
+		if v == int64(value) {
 			return append(slice[:i], slice[i+1:]...), nil
 		}
 	}

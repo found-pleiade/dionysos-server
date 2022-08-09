@@ -38,7 +38,7 @@ func CreateRoom(c *gin.Context) {
 	}
 
 	room.OwnerID = user.ID
-	room.UsersID = append(room.UsersID, user.ID)
+	room.UsersID = append(room.UsersID, int64(user.ID))
 
 	err = db.WithContext(ctx).Create(&room).Error
 
@@ -152,12 +152,12 @@ func ConnectUserToRoom(c *gin.Context) {
 	err = db.WithContext(ctx).First(&room, id).Error
 	if err != nil {
 		log.Printf("Failed to find document: %v", err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "Room not modified"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		return
 	}
 
-	newUsersID := append(room.UsersID, user.ID)
-	err = db.WithContext(ctx).Model(&room).Update("usersID", newUsersID).Error
+	room.UsersID = append(room.UsersID, int64(user.ID))
+	err = db.WithContext(ctx).Save(&room).Error
 	if err != nil {
 		log.Printf("Failed to modify document: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
@@ -171,7 +171,6 @@ func ConnectUserToRoom(c *gin.Context) {
 func DisconnectUserFromRoom(c *gin.Context) {
 	var user *models.User
 	var room models.Room
-	var roomUpdate models.RoomUpdate
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
@@ -198,7 +197,7 @@ func DisconnectUserFromRoom(c *gin.Context) {
 	}
 
 	// Remove user from the connected users list of the room
-	roomUpdate.UsersID, err = utils.RemoveUintFromSlice(roomUpdate.UsersID, user.ID)
+	room.UsersID, err = utils.RemoveUintFromSlice(room.UsersID, user.ID)
 	if err != nil {
 		log.Printf("User not connected to room: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove user from room"})
@@ -206,23 +205,29 @@ func DisconnectUserFromRoom(c *gin.Context) {
 	}
 
 	// We want to delete an empty room and keep an owner at every instant.
-	if len(roomUpdate.UsersID) == 0 {
-		err = db.WithContext(ctx).Delete(&room).Error
-		if err != nil {
+	if len(room.UsersID) == 0 {
+		result := db.WithContext(ctx).Delete(&room)
+		if result.Error != nil {
 			log.Printf("Failed to delete document: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not deleted"})
+			return
+		} else if result.RowsAffected < 1 {
+			log.Printf("Failed to find document: %v", err)
+			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 			return
 		}
 		log.Printf("Room %v deleted", room.ID)
 		c.JSON(http.StatusNoContent, nil)
+		return
 	} else if room.OwnerID == user.ID {
-		roomUpdate.OwnerID = roomUpdate.UsersID[0]
+		room.OwnerID = uint(room.UsersID[0])
 	}
 
-	err = db.WithContext(ctx).Model(&room).Updates(roomUpdate.ToRoom()).Error
+	err = db.WithContext(ctx).Save(&room).Error
 	if err != nil {
 		log.Printf("Failed to modify document: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
+		return
 	}
 
 	c.JSON(http.StatusNoContent, nil)
