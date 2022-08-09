@@ -17,7 +17,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// CreateRoom creates a room in the database
+// CreateRoom creates a room in the database.
 func CreateRoom(c *gin.Context) {
 	var room models.Room
 
@@ -51,7 +51,7 @@ func CreateRoom(c *gin.Context) {
 	c.JSON(http.StatusCreated, utilsRoutes.CreateResponse{URI: "/rooms/" + fmt.Sprint(room.ID)})
 }
 
-// GetRoom returns a room from the database
+// GetRoom returns a room from the database.
 func GetRoom(c *gin.Context) {
 	var room models.Room
 
@@ -75,7 +75,7 @@ func GetRoom(c *gin.Context) {
 	c.JSON(http.StatusOK, room)
 }
 
-// UpdateRoom updates a room in the database
+// UpdateRoom updates a room in the database.
 func UpdateRoom(c *gin.Context) {
 	var roomUpdate models.RoomUpdate
 	var patchedRoom models.Room
@@ -127,8 +127,48 @@ func UpdateRoom(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// ConnectUserToRoom connects a user to a room in the database
+// ConnectUserToRoom connects a user to a room in the database.
 func ConnectUserToRoom(c *gin.Context) {
+	var user *models.User
+	var room models.Room
+
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
+	defer cancelCtx()
+
+	user, err := utilsRoutes.ExtractUserFromContext(c)
+	if err != nil {
+		log.Printf("Failed to extract user from context: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to extract user from context"})
+		return
+	}
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
+		log.Printf("Failed to convert room ID: %v", err)
+		return
+	}
+
+	err = db.WithContext(ctx).First(&room, id).Error
+	if err != nil {
+		log.Printf("Failed to find document: %v", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Room not modified"})
+		return
+	}
+
+	newUsersID := append(room.UsersID, user.ID)
+	err = db.WithContext(ctx).Model(&room).Update("usersID", newUsersID).Error
+	if err != nil {
+		log.Printf("Failed to modify document: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
+// DisconnectUserFromRoom disconnects a user from a room in the database.
+func DisconnectUserFromRoom(c *gin.Context) {
 	var user *models.User
 	var room models.Room
 	var roomUpdate models.RoomUpdate
@@ -143,58 +183,17 @@ func ConnectUserToRoom(c *gin.Context) {
 		return
 	}
 
-	roomID, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 		log.Printf("Failed to convert room ID: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 		return
 	}
 
-	err = db.First(&room, roomID).Error
+	err = db.WithContext(ctx).First(&room, id).Error
 	if err != nil {
 		log.Printf("Failed to find document: %v", err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "Failed to find document"})
-		return
-	}
-
-	roomUpdate.UsersID = append(roomUpdate.UsersID, user.ID)
-	err = db.WithContext(ctx).Model(&room).Updates(roomUpdate.ToRoom()).Error
-	if err != nil {
-		log.Printf("Failed to modify document: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to modify document"})
-		return
-	}
-
-	c.JSON(http.StatusOK, room)
-}
-
-// DisconnectUserFromRoom disconnects a user from a room in the database
-func DisconnectUserFromRoom(c *gin.Context) {
-	var user *models.User
-	var room models.Room
-	var roomUpdate models.RoomUpdate
-
-	_, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
-	defer cancelCtx()
-
-	user, err := utilsRoutes.ExtractUserFromContext(c)
-	if err != nil {
-		log.Printf("Failed to extract user from context: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to extract user from context"})
-		return
-	}
-
-	roomID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
-		log.Printf("Failed to convert room ID: %v", err)
-		return
-	}
-
-	err = db.First(&room, roomID).Error
-	if err != nil {
-		log.Printf("Failed to find document: %v", err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "Failed to find document"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		return
 	}
 
@@ -206,29 +205,25 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	// Check if user is owner to know if we give ownership to a new user
-	if room.OwnerID == user.ID {
-		if len(roomUpdate.UsersID) > 0 {
-			err = utilsRoutes.ChangeOwner(roomUpdate, db)
-			if err != nil {
-				log.Printf("Failed to change owner: %v", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to change owner"})
-				return
-			}
-
-		} else {
-			err = utilsRoutes.DeleteRoom(room.ID, db)
-			if err == nil {
-				log.Printf("Room has been deleted")
-			} else {
-				log.Printf("Failed to delete room: %v", err)
-			}
+	// We want to delete an empty room and keep an owner at every instant.
+	if len(roomUpdate.UsersID) == 0 {
+		err = db.WithContext(ctx).Delete(&room).Error
+		if err != nil {
+			log.Printf("Failed to delete document: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
+			return
 		}
+		log.Printf("Room %v deleted", room.ID)
+		c.JSON(http.StatusNoContent, nil)
+	} else if room.OwnerID == user.ID {
+		roomUpdate.OwnerID = roomUpdate.UsersID[0]
 	}
 
-	// Delete user
-	c.Set("id", user.ID)
-	DeleteUser(c)
+	err = db.WithContext(ctx).Model(&room).Updates(roomUpdate.ToRoom()).Error
+	if err != nil {
+		log.Printf("Failed to modify document: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
+	}
 
-	c.JSON(http.StatusOK, room)
+	c.JSON(http.StatusNoContent, nil)
 }
