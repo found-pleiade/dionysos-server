@@ -4,6 +4,7 @@ package utils
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
+	"gorm.io/gorm"
 )
 
 var router = routes.SetupRouter(gin.New())
@@ -91,6 +93,23 @@ func GetBasicAuthHeader(id, password string) []Header {
 
 	return []Header{
 		{Key: "Authorization", Value: "Basic " + authHeader}}
+}
+
+// ResetTable reset a table in the database .
+func ResetTable(db *gorm.DB, table interface{}) error {
+	if db.Migrator().HasTable(table) {
+		err := db.Migrator().DropTable(table)
+		if err != nil {
+			return err
+		}
+		err = db.AutoMigrate(table)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+	return errors.New("table not found")
 }
 
 // disableLogs to remove logs from default logger during tests.
