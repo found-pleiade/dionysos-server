@@ -12,13 +12,13 @@ type Room struct {
 	DeletedAt sql.NullTime `gorm:"index" json:"-"`
 	Name      string       `json:"name" binding:"required,gte=2,lte=20" example:"BirthdayParty"`
 	OwnerID   uint         `json:"ownerID,omitempty"`
-	UsersID   []uint       `json:"usersID,omitempty"`
+	UsersID   []uint       `json:"usersID,omitempty" gorm:"type:integer[]"`
 }
 
 type RoomUpdate struct {
-	Name       string `json:"name,omitempty" binding:"gte=2,lte=20"`
-	OwnerID    uint   `json:"ownerID,omitempty"`
-	UsersID    []uint `json:"usersID,omitempty"`
+	Name    string `json:"name,omitempty" binding:"gte=2,lte=20"`
+	OwnerID uint   `json:"ownerID,omitempty"`
+	UsersID []uint `json:"usersID,omitempty"`
 }
 
 // ToRoom converts a RoomUpdate to a Room
