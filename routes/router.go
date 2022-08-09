@@ -44,11 +44,13 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		{
 			if redisStore != nil {
 				userRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetUser)
+				userRouter.PATCH("/:id", invalidateCacheURI, UpdateUser)
+				userRouter.DELETE("/:id", invalidateCacheURI, DeleteUser)
 			} else {
 				userRouter.GET("/:id", GetUser)
+				userRouter.PATCH("/:id", UpdateUser)
+				userRouter.DELETE("/:id", DeleteUser)
 			}
-			userRouter.PATCH("/:id", invalidateCacheURI, UpdateUser)
-			userRouter.DELETE("/:id", invalidateCacheURI, DeleteUser)
 		}
 
 		roomRouter := r.Group("/rooms", authentication)
@@ -56,11 +58,13 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			roomRouter.POST("", CreateRoom)
 			if redisStore != nil {
 				roomRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetRoom)
+				roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
+				roomRouter.DELETE("/:id", invalidateCacheURI, DeleteRoom)
 			} else {
 				roomRouter.GET("/:id", GetRoom)
+				roomRouter.PATCH("/:id", UpdateRoom)
+				roomRouter.DELETE("/:id", DeleteRoom)
 			}
-			roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
-			roomRouter.DELETE("/:id", invalidateCacheURI, DeleteRoom)
 		}
 		if redisStore != nil {
 			r.GET("/version", cache.CacheByRequestURI(redisStore, 60*time.Minute), func(c *gin.Context) {
