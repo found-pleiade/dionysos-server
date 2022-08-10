@@ -150,7 +150,7 @@ func TestConnectRoom(t *testing.T) {
 
 	regex := fmt.Sprintf(`{"name":"test","ownerID":%s,"usersID":\[%s\]}`, id, id)
 
-	method := http.MethodPost
+	method := http.MethodPatch
 	target := "/connect"
 	test := utils.TestRUD{
 		CreateRequest:        roomCreateRequest,
@@ -180,7 +180,7 @@ func TestDisconnectRoom(t *testing.T) {
 		t.Error(err)
 	}
 
-	method := http.MethodPost
+	method := http.MethodPatch
 	target := "/disconnect"
 	test := utils.TestRUD{
 		CreateRequest:        roomCreateRequest,
@@ -237,16 +237,16 @@ func TestRoomScenarioA(t *testing.T) {
 		CreateResponse:       CreateResponseRoom{},
 		SubTests: []utils.SubTest{
 			{Name: "Assert A is in room", Request: utils.Request{Method: http.MethodGet, Headers: headersB}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenA},
-			{Name: "B joins", Request: utils.Request{Target: targetConnect, Method: http.MethodPost, Headers: headersB}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "B joins", Request: utils.Request{Target: targetConnect, Method: http.MethodPatch, Headers: headersB}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
 			{Name: "Assert B has joined", Request: utils.Request{Method: http.MethodGet, Headers: headersB}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenAB},
-			{Name: "C joins", Request: utils.Request{Target: targetConnect, Method: http.MethodPost, Headers: headersC}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "C joins", Request: utils.Request{Target: targetConnect, Method: http.MethodPatch, Headers: headersC}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
 			{Name: "Assert C has joined", Request: utils.Request{Method: http.MethodGet, Headers: headersC}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenABC},
-			{Name: "C disconnects", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPost, Headers: headersC}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "C disconnects", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPatch, Headers: headersC}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
 			{Name: "Assert C has disconnected", Request: utils.Request{Method: http.MethodGet, Headers: headersA}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenAB},
-			{Name: "C tries to disconnects again", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPost, Headers: headersC}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"User not in room"}`},
-			{Name: "A disconnects", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPost, Headers: headersA}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "C tries to disconnects again", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPatch, Headers: headersC}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"User not in room"}`},
+			{Name: "A disconnects", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPatch, Headers: headersA}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
 			{Name: "Assert A has disconnected", Request: utils.Request{Method: http.MethodGet, Headers: headersA}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenB},
-			{Name: "B disconnects", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPost, Headers: headersB}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "B disconnects", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPatch, Headers: headersB}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
 			{Name: "Room should be deleted", Request: utils.Request{Method: http.MethodGet, Headers: headersA}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
 	}
