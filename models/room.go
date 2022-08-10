@@ -1,10 +1,20 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+
+	"github.com/lib/pq"
+)
 
 type Room struct {
-	gorm.Model `json:"-"`
-	Name       string `json:"name" binding:"required,gte=2,lte=20"`
+	ID        uint          `gorm:"primarykey" json:"-"`
+	CreatedAt time.Time     `json:"-"`
+	UpdatedAt time.Time     `json:"-"`
+	DeletedAt sql.NullTime  `gorm:"index" json:"-"`
+	Name      string        `json:"name" binding:"required,gte=2,lte=20" example:"BirthdayParty"`
+	OwnerID   uint          `json:"ownerID,omitempty"`
+	UsersID   pq.Int64Array `json:"usersID,omitempty" gorm:"type:integer[]"`
 }
 
 type RoomUpdate struct {

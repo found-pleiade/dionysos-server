@@ -1,11 +1,17 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+	"time"
+)
 
 type User struct {
-	gorm.Model `json:"-"`
-	Name       string `json:"name" binding:"required,gte=2,lte=20"`
-	Password   string `json:"-"`
+	ID        uint         `gorm:"primarykey" json:"-"`
+	CreatedAt time.Time    `json:"-"`
+	UpdatedAt time.Time    `json:"-"`
+	DeletedAt sql.NullTime `gorm:"index" json:"-"`
+	Name      string       `json:"name" binding:"required,gte=2,lte=20" example:"Diablox9"`
+	Password  string       `json:"-"`
 }
 
 type UserUpdate struct {
