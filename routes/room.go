@@ -160,7 +160,7 @@ func ConnectUserToRoom(c *gin.Context) {
 	// Assert user is not already in the room.
 	if slices.Contains(room.UsersID, int64(user.ID)) {
 		log.Printf("User already in room")
-		c.JSON(http.StatusConflict, gin.H{"error": "User already in Room"})
+		c.JSON(http.StatusConflict, gin.H{"error": "User already in room"})
 		return
 	}
 
@@ -209,7 +209,7 @@ func DisconnectUserFromRoom(c *gin.Context) {
 	room.UsersID, err = utils.RemoveUintFromSlice(room.UsersID, user.ID)
 	if err != nil {
 		log.Printf("User not connected to room: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove user from room"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User not in room"})
 		return
 	}
 
