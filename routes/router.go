@@ -94,7 +94,7 @@ func authentication(c *gin.Context) {
 		err := db.WithContext(ctx).First(&user, id).Error
 
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found during authentication"})
 			log.Printf("Failed to find document: %v", err)
 			return
 		}
