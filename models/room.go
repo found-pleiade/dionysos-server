@@ -3,18 +3,16 @@ package models
 import (
 	"database/sql"
 	"time"
-
-	"github.com/lib/pq"
 )
 
 type Room struct {
-	ID        uint64        `gorm:"primaryKey;autoincrement:false" json:"-"`
-	CreatedAt time.Time     `json:"-"`
-	UpdatedAt time.Time     `json:"-"`
-	DeletedAt sql.NullTime  `gorm:"index" json:"-"`
-	Name      string        `json:"name" binding:"required,gte=2,lte=20" example:"BirthdayParty"`
-	OwnerID   uint          `json:"ownerID,omitempty"`
-	UsersID   pq.Int64Array `json:"usersID,omitempty" gorm:"type:integer[]"`
+	ID        uint64       `gorm:"primaryKey;autoincrement:false" json:"-"`
+	CreatedAt time.Time    `json:"-"`
+	UpdatedAt time.Time    `json:"-"`
+	DeletedAt sql.NullTime `gorm:"index" json:"-"`
+	Name      string       `json:"name" binding:"required,gte=2,lte=20" example:"BirthdayParty"`
+	OwnerID   uint64       `json:"ownerID"`
+	Users     []User       `json:"users"`
 }
 
 type RoomUpdate struct {

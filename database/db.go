@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/Brawdunoir/dionysos-server/models"
+	"github.com/Brawdunoir/dionysos-server/variables"
 	c "github.com/Brawdunoir/dionysos-server/variables"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -18,6 +19,11 @@ func setupDatabase() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(createDSN()), createConfig())
 	if err != nil {
 		log.Fatal("Failed to connect to the database: ", err)
+	}
+
+	if variables.Environment == variables.ENVIRONMENT_DEVELOPMENT {
+		db.Migrator().DropTable(&models.User{})
+		db.Migrator().DropTable(&models.Room{})
 	}
 
 	err = db.AutoMigrate(&models.User{}, &models.Room{})

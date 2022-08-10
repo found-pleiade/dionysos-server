@@ -12,14 +12,14 @@ type CreateResponse struct {
 	Password string `json:"password,omitempty"`
 }
 
-func AssertUser(c *gin.Context, expectedID int) error {
+func AssertUser(c *gin.Context, expectedID uint64) error {
 	user, err := ExtractUserFromContext(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found in context. Has it been set in the middleware?"})
 		return err
 	}
 
-	if user.ID != uint(expectedID) {
+	if user.ID != expectedID {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authorized"})
 		return errors.New("user not authorized")
 	}
