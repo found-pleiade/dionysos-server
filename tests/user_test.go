@@ -112,7 +112,7 @@ func TestDeleteUser(t *testing.T) {
 			{Name: "Unauthorized to delete another user", Request: utils.Request{Method: method, Target: "987654321"}, ResponseCode: http.StatusUnauthorized, ResponseBodyRegex: `{"error":"User not authorized"}`},
 			{Name: "Invalid ID", Request: utils.Request{Method: method, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid user ID"}`},
 			{Name: "Success", Request: utils.Request{Method: method}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
-			{Name: "Correctly deleted", Request: utils.Request{Method: http.MethodGet}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
+			{Name: "Correctly deleted", Request: utils.Request{Method: http.MethodGet}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found during authentication"}`},
 		},
 	}
 	test.Run(t)
