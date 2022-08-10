@@ -2,6 +2,7 @@ package tests
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -70,10 +71,12 @@ func TestGetRoom(t *testing.T) {
 	}
 
 	// Create the user that will be used to pursue the tests.
-	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	id, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
 		t.Error(err)
 	}
+
+	suffix := fmt.Sprintf(`,"ownerID":%s,"usersID":\[%s\]}`, id, id)
 
 	method := http.MethodGet
 	test := utils.TestRUD{
@@ -81,7 +84,7 @@ func TestGetRoom(t *testing.T) {
 		CreateResponse:       CreateResponseRoom{},
 		CreateRequestHeaders: headers,
 		SubTests: []utils.SubTest{
-			{Name: "Success", Request: utils.Request{Method: method, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"test"}`},
+			{Name: "Success", Request: utils.Request{Method: method, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"test"` + suffix},
 			{Name: "Invalid ID", Request: utils.Request{Method: method, Target: "abc", Headers: headers}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, Target: "987654321", Headers: headers}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
@@ -97,10 +100,12 @@ func TestUpdateRoom(t *testing.T) {
 	}
 
 	// Create the user that will be used to pursue the tests.
-	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	id, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
 		t.Error(err)
 	}
+
+	suffix := fmt.Sprintf(`,"ownerID":%s,"usersID":\[%s\]}`, id, id)
 
 	method := http.MethodPatch
 	test := utils.TestRUD{
@@ -109,7 +114,7 @@ func TestUpdateRoom(t *testing.T) {
 		CreateResponse:       CreateResponseRoom{},
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, Headers: headers, Body: `{"name":"test2"}`}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
-			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"test2"}`},
+			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"test2"` + suffix},
 			{Name: "Empty Body", Request: utils.Request{Method: method, Headers: headers, Body: ``}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Empty json", Request: utils.Request{Method: method, Headers: headers, Body: `{}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Bad name key", Request: utils.Request{Method: method, Headers: headers, Body: `{"wrongkey":"test2"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
@@ -119,10 +124,10 @@ func TestUpdateRoom(t *testing.T) {
 			{Name: "Object name value", Request: utils.Request{Method: method, Headers: headers, Body: `{"name":{"somekey":"somevalue"}}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Less than min caracters", Request: utils.Request{Method: method, Headers: headers, Body: `{"name":"a"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Exactly min caracters", Request: utils.Request{Method: method, Headers: headers, Body: `{"name":"ab"}`}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
-			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"ab"}`},
+			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"ab"` + suffix},
 			{Name: "More than max caracters", Request: utils.Request{Method: method, Headers: headers, Body: `{"name":"xxxxxxxxxxxxxxxxxxxxx"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Exactly max caracters", Request: utils.Request{Method: method, Headers: headers, Body: `{"name":"xxxxxxxxxxxxxxxxxxxx"}`}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
-			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"xxxxxxxxxxxxxxxxxxxx"}`},
+			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"xxxxxxxxxxxxxxxxxxxx"` + suffix},
 			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321", Body: `{"name":"test2"}`}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
@@ -130,45 +135,122 @@ func TestUpdateRoom(t *testing.T) {
 	test.Run(t)
 }
 
-// TestConnectUserToRoom tests the ConnectUserToRoom function.
-func TestConnectUserToRoom(t *testing.T) {
-	// Create the user that will be used to pursue the tests.
-	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
+// TestConnectRoom tests the ConnectUserToRoom function.
+func TestConnectRoom(t *testing.T) {
+	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
 	if err != nil {
 		t.Error(err)
 	}
 
+	// Create the user that will be used to pursue the tests.
+	id, headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	if err != nil {
+		t.Error(err)
+	}
+
+	regex := fmt.Sprintf(`{"name":"test","ownerID":%s,"usersID":\[%s\]}`, id, id)
+
 	method := http.MethodPost
+	target := "/connect"
 	test := utils.TestRUD{
 		CreateRequest:        roomCreateRequest,
 		CreateRequestHeaders: headers,
 		CreateResponse:       CreateResponseRoom{},
 		SubTests: []utils.SubTest{
-			{Name: "Success", Request: utils.Request{Method: method, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: ``},
-			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
-			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
+			{Name: "Success", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: regex},
+			{Name: "Connect 2nd time", Request: utils.Request{Target: target, Method: method, Headers: headers}, ResponseCode: http.StatusConflict, ResponseBodyRegex: `{"error":"User already in room"}`},
+			{Name: "Not added 2nd time", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: regex},
+			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc" + target}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
+			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321" + target}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
 	}
 	test.Run(t)
 }
 
-// TestDisconnectUserFromRoom tests the DisonnectUserFromRoom function.
-func TestDiconnectUserFromRoom(t *testing.T) {
-	// Create the user that will be used to pursue the tests.
-	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
+// TestDisconnectRoom tests the DisconnectUserToRoom function.
+func TestDisconnectRoom(t *testing.T) {
+	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
 	if err != nil {
 		t.Error(err)
 	}
 
+	// Create the user that will be used to pursue the tests.
+	id, headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	if err != nil {
+		t.Error(err)
+	}
+
+	regex := fmt.Sprintf(`{"name":"test","ownerID":%s,"usersID":\[%s\]}`, id, id)
+
 	method := http.MethodPost
+	target := "/disconnect"
 	test := utils.TestRUD{
 		CreateRequest:        roomCreateRequest,
 		CreateRequestHeaders: headers,
 		CreateResponse:       CreateResponseRoom{},
 		SubTests: []utils.SubTest{
-			{Name: "Success", Request: utils.Request{Method: method, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: ``},
-			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
-			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
+			{Name: "Assert Setup", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: regex},
+			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc" + target}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
+			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321" + target}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
+			{Name: "Success", Request: utils.Request{Target: target, Method: method, Headers: headers}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "Room should be deleted", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
+		},
+	}
+	test.Run(t)
+}
+
+// TestRoomScenarioA is the following scenario:
+// — 3 users (A, B, C) join the room, A is the owner.
+// — C disconnects, nothing happens.
+// — C tries to disconnect again, it is refused.
+// — A disconnects, the ownership is transfered to B.
+// — B disconnects, the room is deleted.
+func TestRoomScenarioA(t *testing.T) {
+	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Create the user that will be used to pursue the tests.
+	idA, headersA, err := utils.CreateTestUser(models.User{Name: "userA"})
+	if err != nil {
+		t.Error(err)
+	}
+	idB, headersB, err := utils.CreateTestUser(models.User{Name: "userB"})
+	if err != nil {
+		t.Error(err)
+	}
+	idC, headersC, err := utils.CreateTestUser(models.User{Name: "userC"})
+	if err != nil {
+		t.Error(err)
+	}
+
+	name := `{"name":"test"`
+	roomWhenA := fmt.Sprintf(`%s,"ownerID":%s,"usersID":\[%s\]}`, name, idA, idA)
+	roomWhenAB := fmt.Sprintf(`%s,"ownerID":%s,"usersID":\[%s,%s\]}`, name, idA, idA, idB)
+	roomWhenABC := fmt.Sprintf(`%s,"ownerID":%s,"usersID":\[%s,%s,%s\]}`, name, idA, idA, idB, idC)
+	roomWhenB := fmt.Sprintf(`%s,"ownerID":%s,"usersID":\[%s\]}`, name, idB, idB)
+
+	targetConnect := "/connect"
+	targetDisconnect := "/disconnect"
+
+	test := utils.TestRUD{
+		CreateRequest:        roomCreateRequest,
+		CreateRequestHeaders: headersA,
+		CreateResponse:       CreateResponseRoom{},
+		SubTests: []utils.SubTest{
+			{Name: "Assert A is in room", Request: utils.Request{Method: http.MethodGet, Headers: headersB}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenA},
+			{Name: "B joins", Request: utils.Request{Target: targetConnect, Method: http.MethodPost, Headers: headersB}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "Assert B has joined", Request: utils.Request{Method: http.MethodGet, Headers: headersB}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenAB},
+			{Name: "C joins", Request: utils.Request{Target: targetConnect, Method: http.MethodPost, Headers: headersC}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "Assert C has joined", Request: utils.Request{Method: http.MethodGet, Headers: headersC}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenABC},
+			{Name: "C disconnects", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPost, Headers: headersC}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "Assert C has disconnected", Request: utils.Request{Method: http.MethodGet, Headers: headersA}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenAB},
+			{Name: "C tries to disconnects again", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPost, Headers: headersC}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"User not in room"}`},
+			{Name: "A disconnects", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPost, Headers: headersA}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "Assert A has disconnected", Request: utils.Request{Method: http.MethodGet, Headers: headersA}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenB},
+			{Name: "B disconnects", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPost, Headers: headersB}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "Room should be deleted", Request: utils.Request{Method: http.MethodGet, Headers: headersA}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
 	}
 	test.Run(t)
