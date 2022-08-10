@@ -8,7 +8,7 @@ import (
 )
 
 type Room struct {
-	ID        uint          `gorm:"primarykey" json:"-"`
+	ID        uint64        `gorm:"primaryKey;autoincrement:false" json:"-"`
 	CreatedAt time.Time     `json:"-"`
 	UpdatedAt time.Time     `json:"-"`
 	DeletedAt sql.NullTime  `gorm:"index" json:"-"`
