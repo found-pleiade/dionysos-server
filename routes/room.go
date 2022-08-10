@@ -14,6 +14,7 @@ import (
 	utils "github.com/Brawdunoir/dionysos-server/utils"
 	utilsRoutes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
 )
 
@@ -156,7 +157,15 @@ func ConnectUserToRoom(c *gin.Context) {
 		return
 	}
 
+	// Assert user is not already in the room.
+	if slices.Contains(room.UsersID, int64(user.ID)) {
+		log.Printf("User already in room")
+		c.JSON(http.StatusConflict, gin.H{"error": "User already in Room"})
+		return
+	}
+
 	room.UsersID = append(room.UsersID, int64(user.ID))
+
 	err = db.WithContext(ctx).Save(&room).Error
 	if err != nil {
 		log.Printf("Failed to modify document: %v", err)
