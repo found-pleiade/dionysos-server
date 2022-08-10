@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
+	"github.com/Brawdunoir/dionysos-server/utils"
 	utilsRoutes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slices"
@@ -34,6 +35,13 @@ func CreateRoom(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found in context"})
 		log.Printf("Failed to extract user from context: %v", err)
+		return
+	}
+
+	room.ID, err = utils.UUIDGenerator.NextID()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not created"})
+		log.Printf("Failed to create document: %v", err)
 		return
 	}
 
