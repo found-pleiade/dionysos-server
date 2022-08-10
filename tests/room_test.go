@@ -167,7 +167,7 @@ func TestConnectRoom(t *testing.T) {
 	test.Run(t)
 }
 
-// TestDisconnectRoom tests the DisconnectUserToRoom function.
+// TestDisconnectRoom tests the DisconnectUserFromRoom function.
 func TestDisconnectRoom(t *testing.T) {
 	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
 	if err != nil {
@@ -175,12 +175,10 @@ func TestDisconnectRoom(t *testing.T) {
 	}
 
 	// Create the user that will be used to pursue the tests.
-	id, headers, err := utils.CreateTestUser(models.User{Name: "test"})
+	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
 	if err != nil {
 		t.Error(err)
 	}
-
-	regex := fmt.Sprintf(`{"name":"test","ownerID":%s,"usersID":\[%s\]}`, id, id)
 
 	method := http.MethodPost
 	target := "/disconnect"
@@ -189,7 +187,6 @@ func TestDisconnectRoom(t *testing.T) {
 		CreateRequestHeaders: headers,
 		CreateResponse:       CreateResponseRoom{},
 		SubTests: []utils.SubTest{
-			{Name: "Assert Setup", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: regex},
 			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc" + target}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321" + target}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 			{Name: "Success", Request: utils.Request{Target: target, Method: method, Headers: headers}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},

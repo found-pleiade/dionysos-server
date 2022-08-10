@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
-	utils "github.com/Brawdunoir/dionysos-server/utils"
 	utilsRoutes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slices"
@@ -206,7 +205,7 @@ func DisconnectUserFromRoom(c *gin.Context) {
 	}
 
 	// Remove user from the connected users list of the room
-	room.UsersID, err = utils.RemoveUintFromSlice(room.UsersID, user.ID)
+	slices.Delete(room.UsersID, int(user.ID), int(user.ID))
 	if err != nil {
 		log.Printf("User not connected to room: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User not in room"})
@@ -219,10 +218,6 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		if result.Error != nil {
 			log.Printf("Failed to delete document: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not deleted"})
-			return
-		} else if result.RowsAffected < 1 {
-			log.Printf("Failed to find document: %v", err)
-			c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 			return
 		}
 		log.Printf("Room %v deleted", room.ID)
