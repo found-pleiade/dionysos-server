@@ -205,12 +205,13 @@ func DisconnectUserFromRoom(c *gin.Context) {
 	}
 
 	// Remove user from the connected users list of the room
-	slices.Delete(room.UsersID, int(user.ID), int(user.ID))
-	if err != nil {
+	i := slices.Index(room.UsersID, int64(user.ID))
+	if i == -1 {
 		log.Printf("User not connected to room: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User not in room"})
 		return
 	}
+	room.UsersID = slices.Delete(room.UsersID, i, i+1)
 
 	// We want to delete an empty room and keep an owner at every instant.
 	if len(room.UsersID) == 0 {
