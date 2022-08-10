@@ -8,7 +8,7 @@ import (
 )
 
 // VERSION as a constant variable
-const VERSION = "0.1.0"
+const VERSION = "0.2.0"
 
 func main() {
 	os.Setenv("VERSION", VERSION)
