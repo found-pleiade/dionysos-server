@@ -9,6 +9,8 @@ require (
 	gorm.io/gorm v1.23.8
 )
 
+require golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
+
 require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/chenyahui/gin-cache v1.7.1 // indirect
