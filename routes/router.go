@@ -136,10 +136,12 @@ func options(c *gin.Context) {
 	}
 }
 
+// Invalidate cache for a given URI.
 func invalidateCacheURI(c *gin.Context) {
 	c.Next()
-	code := c.Request.Response.StatusCode
-	if !c.IsAborted() && code >= 200 && code < 300 && redisStore != nil {
+	// Get the response code.
+	code := c.Writer.Status()
+	if code >= 200 && code < 300 && redisStore != nil {
 		err := redisStore.Delete(c.Request.RequestURI)
 		if err != nil {
 			log.Printf("Failed to invalidate cache: %v", err)
