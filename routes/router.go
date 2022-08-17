@@ -81,7 +81,9 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			c.String(http.StatusOK, version)
 		})
 
+		r.GET("/healthz", Healthz)
 	}
+
 	return router
 }
 
