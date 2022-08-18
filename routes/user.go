@@ -17,13 +17,13 @@ import (
 
 // CreateUser creates a user in the database
 func CreateUser(c *gin.Context) {
-	var user models.User
+	var u models.UserUpdate
 	rand.Seed(time.Now().UnixNano())
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBindJSON(&u); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Printf("Failed to bind JSON: %v", err)
 		return
@@ -32,6 +32,8 @@ func CreateUser(c *gin.Context) {
 	// Create 32 bytes random password
 	password := make([]byte, 32)
 	rand.Read(password)
+	user := u.ToUser()
+
 	user.Password = fmt.Sprintf("%x", password)
 
 	err := db.WithContext(ctx).Create(&user).Error
