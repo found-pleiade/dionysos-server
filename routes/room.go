@@ -87,7 +87,7 @@ func GetRoom(c *gin.Context) {
 
 // UpdateRoom updates a room in the database.
 func UpdateRoom(c *gin.Context) {
-	var roomUpdate models.RoomUpdate
+	var r models.RoomUpdate
 	var patchedRoom models.Room
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
@@ -101,7 +101,7 @@ func UpdateRoom(c *gin.Context) {
 	}
 
 	// Test if data is valid
-	if err := c.ShouldBindJSON(&roomUpdate); err != nil {
+	if err := c.ShouldBindJSON(&r); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Printf("Failed to bind JSON: %v", err)
 		return
@@ -126,7 +126,7 @@ func UpdateRoom(c *gin.Context) {
 			return
 		}
 
-		err = db.WithContext(ctx).Model(&patchedRoom).Updates(roomUpdate.ToRoom()).Error
+		err = db.WithContext(ctx).Model(&patchedRoom).Updates(r.ToRoom()).Error
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
 			log.Printf("Failed to modify document: %v", err)
