@@ -12,7 +12,6 @@ type User struct {
 	DeletedAt sql.NullTime `gorm:"index" json:"-"`
 	Name      string       `json:"name" binding:"required,gte=2,lte=20" example:"Diablox9"`
 	Password  string       `json:"-"`
-	RoomID    uint64       `json:"-" gorm:"default:null"`
 }
 
 type UserUpdate struct {

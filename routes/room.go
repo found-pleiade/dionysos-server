@@ -66,14 +66,13 @@ func GetRoom(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 		log.Printf("Failed to convert room ID: %v", err)
 	}
 
-	err = db.WithContext(ctx).First(&room, id).Error
-
+	err = room.GetRoom(ctx, db, id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		log.Printf("Failed to find document: %v", err)
@@ -150,14 +149,14 @@ func ConnectUserToRoom(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 		log.Printf("Failed to convert room ID: %v", err)
 		return
 	}
 
-	err = db.WithContext(ctx).First(&room, id).Error
+	err = room.GetRoom(ctx, db, id)
 	if err != nil {
 		log.Printf("Failed to find document: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
@@ -198,28 +197,33 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Printf("Failed to convert room ID: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 		return
 	}
 
-	err = db.WithContext(ctx).First(&room, id).Error
+	err = room.GetRoom(ctx, db, id)
 	if err != nil {
 		log.Printf("Failed to find document: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		return
 	}
 
-	// Remove user from the connected users list of the room
-	i := slices.Index(room.Users, user)
-	if i == -1 {
+	if !slices.Contains(room.Users, user) {
 		log.Printf("User not connected to room: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User not in room"})
 		return
 	}
-	room.Users = slices.Delete(room.Users, i, i+1)
+
+	// Remove user from the connected users list of the room
+	err = room.RemoveUser(ctx, db, &user)
+	if err != nil {
+		log.Printf("Failed to remove user from room: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to remove user from room"})
+		return
+	}
 
 	// We want to delete an empty room and keep an owner at every instant.
 	if len(room.Users) == 0 {
