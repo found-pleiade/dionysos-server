@@ -30,7 +30,7 @@ var roomCreateRequest = utils.Request{Method: http.MethodPost, Target: roomURL, 
 
 // TestCreateRoom tests the CreateRoom function.
 func TestCreateRoom(t *testing.T) {
-	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
+	err := database.MigrateDB(database.DB, true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -65,7 +65,7 @@ func TestCreateRoom(t *testing.T) {
 
 // TestGetRoom tests the GetRoom function.
 func TestGetRoom(t *testing.T) {
-	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
+	err := database.MigrateDB(database.DB, true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -76,7 +76,7 @@ func TestGetRoom(t *testing.T) {
 		t.Error(err)
 	}
 
-	suffix := fmt.Sprintf(`,"ownerID":%s,"usersID":\[%s\]}`, id, id)
+	suffix := fmt.Sprintf(`,"ownerID":%s,"users":\[{"ID":%s,"name":"test"}\]}`, id, id)
 
 	method := http.MethodGet
 	test := utils.TestRUD{
@@ -94,7 +94,7 @@ func TestGetRoom(t *testing.T) {
 
 // TestUpdateRoom tests the UpdateRoom function.
 func TestUpdateRoom(t *testing.T) {
-	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
+	err := database.MigrateDB(database.DB, true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -105,7 +105,7 @@ func TestUpdateRoom(t *testing.T) {
 		t.Error(err)
 	}
 
-	suffix := fmt.Sprintf(`,"ownerID":%s,"usersID":\[%s\]}`, id, id)
+	suffix := fmt.Sprintf(`,"ownerID":%s,"users":\[{"ID":%s,"name":"test"}\]}`, id, id)
 
 	method := http.MethodPatch
 	test := utils.TestRUD{
@@ -137,7 +137,7 @@ func TestUpdateRoom(t *testing.T) {
 
 // TestConnectRoom tests the ConnectUserToRoom function.
 func TestConnectRoom(t *testing.T) {
-	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
+	err := database.MigrateDB(database.DB, true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -148,7 +148,7 @@ func TestConnectRoom(t *testing.T) {
 		t.Error(err)
 	}
 
-	regex := fmt.Sprintf(`{"name":"test","ownerID":%s,"usersID":\[%s\]}`, id, id)
+	regex := fmt.Sprintf(`,"ownerID":%s,"users":\[{"ID":%s,"name":"test"}\]}`, id, id)
 
 	method := http.MethodPatch
 	target := "/connect"
@@ -169,7 +169,7 @@ func TestConnectRoom(t *testing.T) {
 
 // TestDisconnectRoom tests the DisconnectUserFromRoom function.
 func TestDisconnectRoom(t *testing.T) {
-	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
+	err := database.MigrateDB(database.DB, true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -203,7 +203,7 @@ func TestDisconnectRoom(t *testing.T) {
 // — A disconnects, the ownership is transfered to B.
 // — B disconnects, the room is deleted.
 func TestRoomScenarioA(t *testing.T) {
-	err := utils.ResetTable(database.DB, &models.User{}, &models.Room{})
+	err := database.MigrateDB(database.DB, true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -223,10 +223,10 @@ func TestRoomScenarioA(t *testing.T) {
 	}
 
 	name := `{"name":"test"`
-	roomWhenA := fmt.Sprintf(`%s,"ownerID":%s,"usersID":\[%s\]}`, name, idA, idA)
-	roomWhenAB := fmt.Sprintf(`%s,"ownerID":%s,"usersID":\[%s,%s\]}`, name, idA, idA, idB)
-	roomWhenABC := fmt.Sprintf(`%s,"ownerID":%s,"usersID":\[%s,%s,%s\]}`, name, idA, idA, idB, idC)
-	roomWhenB := fmt.Sprintf(`%s,"ownerID":%s,"usersID":\[%s\]}`, name, idB, idB)
+	roomWhenA := fmt.Sprintf(`%s,"ownerID":%s,"users":\[{"ID":%s,"name":"userA"}\]}`, name, idA, idA)
+	roomWhenAB := fmt.Sprintf(`%s,"ownerID":%s,"users":\[{"ID":%s,"name":"userA"},{"ID":%s,"name":"userB"}\]}`, name, idA, idA, idB)
+	roomWhenABC := fmt.Sprintf(`%s,"ownerID":%s,"users":\[{"ID":%s,"name":"userA"},{"ID":%s,"name":"userB"},{"ID":%s,"name":"userC"}\]}`, name, idA, idA, idB, idC)
+	roomWhenB := fmt.Sprintf(`%s,"ownerID":%s,"users":\[{"ID":%s,"name":"userB"}\]}`, name, idB, idB)
 
 	targetConnect := "/connect"
 	targetDisconnect := "/disconnect"
