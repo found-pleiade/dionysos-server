@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/Brawdunoir/dionysos-server/models"
-	"github.com/Brawdunoir/dionysos-server/variables"
 	c "github.com/Brawdunoir/dionysos-server/variables"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -16,17 +15,14 @@ var DB *gorm.DB = setupDatabase()
 
 // setupDatabase returns a setuped database instance.
 func setupDatabase() *gorm.DB {
+	resetDB := c.Environment == c.ENVIRONMENT_DEVELOPMENT || c.Environment == c.ENVIRONMENT_TESTING
+
 	db, err := gorm.Open(postgres.Open(createDSN()), createConfig())
 	if err != nil {
 		log.Fatal("Failed to connect to the database: ", err)
 	}
 
-	if variables.Environment == variables.ENVIRONMENT_DEVELOPMENT {
-		db.Migrator().DropTable(&models.User{})
-		db.Migrator().DropTable(&models.Room{})
-	}
-
-	err = db.AutoMigrate(&models.User{}, &models.Room{})
+	err = MigrateDB(db, resetDB)
 	if err != nil {
 		log.Fatal("Failed to migrate database: ", err)
 	}
@@ -74,4 +70,19 @@ func createConfig() *gorm.Config {
 		log.Println("Possible values are : " + c.ENVIRONMENT_TESTING + ", " + c.ENVIRONMENT_DEVELOPMENT + ", " + c.ENVIRONMENT_PRODUCTION)
 		return &gorm.Config{}
 	}
+}
+
+// MigrateDB migrate a table in the database and resets all tables if needed.
+func MigrateDB(db *gorm.DB, reset bool) error {
+	if reset {
+		err := db.Migrator().DropTable(&models.User{}, &models.Room{}, "room_users")
+		if err != nil {
+			return err
+		}
+	}
+	err := db.AutoMigrate(&models.Room{}, &models.User{})
+	if err != nil {
+		return err
+	}
+	return nil
 }
