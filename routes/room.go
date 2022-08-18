@@ -20,12 +20,12 @@ import (
 
 // CreateRoom creates a room in the database.
 func CreateRoom(c *gin.Context) {
-	var room models.Room
+	var r models.RoomUpdate
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	if err := c.ShouldBindJSON(&room); err != nil {
+	if err := c.ShouldBindJSON(&r); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		log.Printf("Failed to bind JSON: %v", err)
 		return
@@ -37,6 +37,8 @@ func CreateRoom(c *gin.Context) {
 		log.Printf("Failed to extract user from context: %v", err)
 		return
 	}
+
+	room := r.ToRoom()
 
 	room.ID, err = utils.UUIDGenerator.NextID()
 	if err != nil {
