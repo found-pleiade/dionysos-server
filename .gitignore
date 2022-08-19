@@ -13,3 +13,6 @@ coverage.txt
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Output of air, hotreloading of gin
+tmp/
