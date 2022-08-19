@@ -58,11 +58,3 @@ jobs:
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         run: cosign sign --key cosign.key ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
-      - name: Deploy
-        uses: appleboy/ssh-action@v0.1.4
-        with:
-          host: ${{secrets.HOST}}
-          port: ${{secrets.PORT}}
-          username: ${{secrets.USER}}
-          key: ${{secrets.PRIVATE_SSH_KEY}}
-          script: ${{secrets.SCRIPT}}
