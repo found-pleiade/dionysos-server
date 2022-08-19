@@ -8,11 +8,6 @@ FROM cache as image-test
 COPY . ./
 ENV GIN_MODE=release
 
-# Dev stage
-FROM cache as image-dev
-COPY . ./
-CMD [ "go", "run", "main.go"]
-
 # Prod/Build stage
 FROM cache as builder
 COPY . ./

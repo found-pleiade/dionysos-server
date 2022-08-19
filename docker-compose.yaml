@@ -6,10 +6,8 @@ networks:
 services:
   api:
     container_name: api
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      target: image-dev
+    image: cosmtrek/air
+    working_dir: /dionysos
     ports:
       - 8080:8080
     networks:
@@ -22,6 +20,8 @@ services:
       - POSTGRES_PORT=${POSTGRES_PORT}
       - ENVIRONMENT=DEV
       - BASE_PATH=
+    volumes:
+      - ./:/dionysos/
     depends_on:
       - postgres
 
