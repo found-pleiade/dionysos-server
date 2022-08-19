@@ -14,7 +14,7 @@ POSTGRES_PASSWORD=$POSTGRES_PASSWORD  \
 POSTGRES_PORT=$POSTGRES_PORT \
 POSTGRES_DB=$POSTGRES_DB \
 go test -failfast \
--cover \
+-race \
 -coverprofile=coverage.txt \
 -covermode=atomic \
 -v github.com/Brawdunoir/dionysos-server/$"1"
