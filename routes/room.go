@@ -48,7 +48,7 @@ func CreateRoom(c *gin.Context) {
 	}
 
 	room.OwnerID = user.ID
-	room.UsersID = append(room.UsersID, int64(user.ID))
+	room.Users = append(room.Users, user)
 
 	err = db.WithContext(ctx).Create(&room).Error
 
@@ -68,14 +68,13 @@ func GetRoom(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 		log.Printf("Failed to convert room ID: %v", err)
 	}
 
-	err = db.WithContext(ctx).First(&room, id).Error
-
+	err = room.GetRoom(ctx, db, id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		log.Printf("Failed to find document: %v", err)
@@ -120,7 +119,7 @@ func UpdateRoom(c *gin.Context) {
 		}
 	} else {
 		// Check if requester is the owner of the room
-		err := utilsRoutes.AssertUser(c, int(patchedRoom.OwnerID))
+		err := utilsRoutes.AssertUser(c, patchedRoom.OwnerID)
 		if err != nil {
 			log.Printf("Error when asserting user: %v", err)
 			return
@@ -139,7 +138,7 @@ func UpdateRoom(c *gin.Context) {
 
 // ConnectUserToRoom connects a user to a room in the database.
 func ConnectUserToRoom(c *gin.Context) {
-	var user *models.User
+	var user models.User
 	var room models.Room
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
@@ -152,14 +151,14 @@ func ConnectUserToRoom(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 		log.Printf("Failed to convert room ID: %v", err)
 		return
 	}
 
-	err = db.WithContext(ctx).First(&room, id).Error
+	err = room.GetRoom(ctx, db, id)
 	if err != nil {
 		log.Printf("Failed to find document: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
@@ -167,13 +166,13 @@ func ConnectUserToRoom(c *gin.Context) {
 	}
 
 	// Assert user is not already in the room.
-	if slices.Contains(room.UsersID, int64(user.ID)) {
+	if slices.Contains(room.Users, user) {
 		log.Printf("User already in room")
 		c.JSON(http.StatusConflict, gin.H{"error": "User already in room"})
 		return
 	}
 
-	room.UsersID = append(room.UsersID, int64(user.ID))
+	room.Users = append(room.Users, user)
 
 	err = db.WithContext(ctx).Save(&room).Error
 	if err != nil {
@@ -187,7 +186,7 @@ func ConnectUserToRoom(c *gin.Context) {
 
 // DisconnectUserFromRoom disconnects a user from a room in the database.
 func DisconnectUserFromRoom(c *gin.Context) {
-	var user *models.User
+	var user models.User
 	var room models.Room
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
@@ -200,31 +199,36 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Printf("Failed to convert room ID: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
 		return
 	}
 
-	err = db.WithContext(ctx).First(&room, id).Error
+	err = room.GetRoom(ctx, db, id)
 	if err != nil {
 		log.Printf("Failed to find document: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
 		return
 	}
 
-	// Remove user from the connected users list of the room
-	i := slices.Index(room.UsersID, int64(user.ID))
-	if i == -1 {
+	if !slices.Contains(room.Users, user) {
 		log.Printf("User not connected to room: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User not in room"})
 		return
 	}
-	room.UsersID = slices.Delete(room.UsersID, i, i+1)
+
+	// Remove user from the connected users list of the room
+	err = room.RemoveUser(ctx, db, &user)
+	if err != nil {
+		log.Printf("Failed to remove user from room: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to remove user from room"})
+		return
+	}
 
 	// We want to delete an empty room and keep an owner at every instant.
-	if len(room.UsersID) == 0 {
+	if len(room.Users) == 0 {
 		result := db.WithContext(ctx).Delete(&room)
 		if result.Error != nil {
 			log.Printf("Failed to delete document: %v", err)
@@ -235,7 +239,7 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		c.JSON(http.StatusNoContent, nil)
 		return
 	} else if room.OwnerID == user.ID {
-		room.OwnerID = uint(room.UsersID[0])
+		room.OwnerID = room.Users[0].ID
 	}
 
 	err = db.WithContext(ctx).Save(&room).Error

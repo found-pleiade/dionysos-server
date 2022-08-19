@@ -8,15 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ExtractUserFromContext(c *gin.Context) (*models.User, error) {
+func ExtractUserFromContext(c *gin.Context) (models.User, error) {
 	val, ok := c.Get(variables.USER_CONTEXT_KEY)
 	if !ok {
-		return nil, errors.New("user not found in context")
+		return models.User{}, errors.New("user not found in context")
 	}
 	user, ok := val.(models.User)
 	if !ok {
-		return nil, errors.New("value found in context but it was not a user")
+		return models.User{}, errors.New("value found in context but it was not a user")
 	}
 
-	return &user, nil
+	return user, nil
 }
