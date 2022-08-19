@@ -200,7 +200,7 @@ func TestDisconnectRoom(t *testing.T) {
 // — 3 users (A, B, C) join the room, A is the owner.
 // — C disconnects, nothing happens.
 // — C tries to disconnect again, it is refused.
-// — A disconnects, the ownership is transfered to B.
+// — A disconnects, the ownership is transferred to B.
 // — B disconnects, the room is deleted.
 func TestRoomScenarioA(t *testing.T) {
 	err := database.MigrateDB(database.DB, true)
