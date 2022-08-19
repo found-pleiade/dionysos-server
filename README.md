@@ -5,7 +5,7 @@
 Dionysos Server is a golang RESTful API for the [dionysos-client](https://github.com/Brawdunoir/dionysos-client) project, enabling users to **share cinematic experiences**.
 
 ## Developping another client
-This API is hosted at https://ipa.dionysos.live and is publicly available. The default client using this API is located at https://dionysos.live.
+This API is hosted at <https://ipa.dionysos.live> and is publicly available. The default client using this API is located at <https://dionysos.live>.
 
 You are free to use the API and developping another client. See [documentation](https://github.com/found-pleiade/dionysos-server#documentation).
 
