@@ -1,4 +1,4 @@
-package tests
+package routes_test
 
 import (
 	"encoding/json"
@@ -8,12 +8,12 @@ import (
 
 	"github.com/Brawdunoir/dionysos-server/database"
 	"github.com/Brawdunoir/dionysos-server/models"
-	utils_routes "github.com/Brawdunoir/dionysos-server/utils/routes"
+	utilsRoutes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	utils "github.com/Brawdunoir/dionysos-server/utils/tests"
 )
 
 // CreateResponseRoom allows to map the response of the CreateRoom request and get the key for further requests.
-type CreateResponseRoom utils_routes.CreateResponse
+type CreateResponseRoom utilsRoutes.CreateResponse
 
 func (c CreateResponseRoom) TargetURI(body []byte) (string, error) {
 	err := json.Unmarshal(body, &c)
