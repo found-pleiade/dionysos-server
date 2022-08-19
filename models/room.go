@@ -29,12 +29,13 @@ func (ru *RoomUpdate) ToRoom() *Room {
 	}
 }
 
+// GetRoom gets a room by its ID and sets its Users field before returning it.
 func (r *Room) GetRoom(ctx context.Context, db *gorm.DB, id uint64) error {
 	err := db.WithContext(ctx).First(&r, id).Error
 	if err != nil {
 		return err
 	}
-	r.Users, err = r.GetAllUsers(ctx, db)
+	err = db.WithContext(ctx).Model(&r).Association("Users").Find(&r.Users)
 	if err != nil {
 		return err
 	}
@@ -42,13 +43,7 @@ func (r *Room) GetRoom(ctx context.Context, db *gorm.DB, id uint64) error {
 	return err
 }
 
-// Retrieve user list with edger loading languages
-func (r *Room) GetAllUsers(ctx context.Context, db *gorm.DB) ([]User, error) {
-	var users []User
-	err := db.WithContext(ctx).Model(&r).Association("Users").Find(&users)
-	return users, err
-}
-
+// RemoveUser removes a user from a room.
 func (r *Room) RemoveUser(ctx context.Context, db *gorm.DB, user *User) error {
 	return db.WithContext(ctx).Model(&r).Association("Users").Delete(user)
 }
