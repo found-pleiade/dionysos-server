@@ -1,4 +1,4 @@
-package tests
+package routes_test
 
 import (
 	"encoding/json"
