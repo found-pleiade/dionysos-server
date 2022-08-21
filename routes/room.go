@@ -4,6 +4,7 @@ package routes
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -147,6 +148,12 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
+	if stream, ok := listStreamsRoom[room.ID]; ok {
+		if r.Name != "" {
+			stream.Message <- Message{Event: "roomNameUpdated", Data: room.Name}
+		}
+	}
+
 	c.JSON(http.StatusNoContent, nil)
 }
 
@@ -195,6 +202,10 @@ func ConnectUserToRoom(c *gin.Context) {
 		log.Printf("Failed to modify document: %v", err)
 		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not modified"))
 		return
+	}
+
+	if stream, ok := listStreamsRoom[room.ID]; ok {
+		stream.Message <- Message{Event: "userConnected", Data: user}
 	}
 
 	c.JSON(http.StatusNoContent, nil)
@@ -266,5 +277,35 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
+	if stream, ok := listStreamsRoom[room.ID]; ok {
+		stream.Message <- Message{Event: "userDisconnected", Data: user.ID}
+	}
+
 	c.JSON(http.StatusNoContent, nil)
+}
+
+// StreamRoom WIP.
+func StreamRoom(c *gin.Context) {
+	room, err := routes.ExtractRoomFromContext(c)
+	if err != nil {
+		log.Printf("Failed to extract room from context: %v", err)
+		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+		return
+	}
+
+	stream, ok := listStreamsRoom[room.ID]
+	if !ok {
+		log.Printf("Stream has not been initialized or cannot be retrieved: %v", err)
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Stream not found or broken"))
+		return
+	}
+
+	c.Stream(func(w io.Writer) bool {
+		// Stream message to client from message channel
+		if msg, ok := <-stream.Message; ok {
+			c.SSEvent("message", msg)
+			return true
+		}
+		return false
+	})
 }
