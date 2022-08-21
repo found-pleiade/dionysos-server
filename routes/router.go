@@ -7,7 +7,6 @@ import (
 	"crypto/subtle"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/database"
@@ -73,14 +72,8 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 				roomRouter.PATCH("/:id/disconnect", DisconnectUserFromRoom)
 			}
 		}
-		r.GET("/version", func(c *gin.Context) {
-			var version string
-			if version = os.Getenv("VERSION"); version == "" {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Version not set"})
-			}
-			c.String(http.StatusOK, version)
-		})
-
+		// Version
+		r.GET("/version", GetVersion)
 		r.GET("/healthz", Healthz)
 	}
 
