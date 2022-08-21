@@ -13,7 +13,7 @@ import (
 // @Tags         Misc
 // @Produce      plain
 // @Success      200 {string} plain "Version as x.x.x"
-// @Failure      500 {object} utils.ErrorResponse "Version has not been set correctly in server side"
+// @Failure      500 {object} utils.ErrorResponse "Version has not been set correctly on the server side"
 // @Router       /version [get]
 func GetVersion(c *gin.Context) {
 	var version string
