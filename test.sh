@@ -17,7 +17,8 @@ go test -failfast \
 -race \
 -coverprofile=coverage.txt \
 -covermode=atomic \
--v github.com/Brawdunoir/dionysos-server/"$1"
+-coverpkg ./... ./... \
+-v
 
 # Stop the DB
 docker-compose -f docker-compose_testing.yaml down >/dev/null 2>&1
