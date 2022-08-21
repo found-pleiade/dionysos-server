@@ -309,3 +309,76 @@ func DisconnectUserFromRoom(c *gin.Context) {
 
 	c.JSON(http.StatusNoContent, nil)
 }
+
+// KickUserFromRoom disconnects a user from a room in the database.
+func KickUserFromRoom(c *gin.Context) {
+	var patchedRoom models.Room
+	var user models.User
+
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
+	defer cancelCtx()
+
+	roomID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room ID"})
+		log.Printf("Failed to convert room ID: %v", err)
+		return
+	}
+
+	userID, err := strconv.ParseUint(c.Param("userid"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		log.Printf("Failed to convert user ID: %v", err)
+		return
+	}
+
+	err = patchedRoom.GetRoom(ctx, db, roomID)
+	if err != nil {
+		log.Printf("Failed to find document: %v", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Room not found"})
+		return
+	}
+
+	err = db.WithContext(ctx).First(&user, userID).Error
+	if err != nil {
+		log.Printf("Failed to find document: %v", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	if !slices.Contains(patchedRoom.Users, user) {
+		log.Printf("User not connected to room: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User not in room"})
+		return
+	}
+
+	// Check if requester is the owner of the room.
+	err = utilsRoutes.AssertUser(c, patchedRoom.OwnerID)
+	if err != nil {
+		log.Printf("Error when asserting user: %v", err)
+		return
+	}
+
+	// Owner can't kick himself.
+	if patchedRoom.OwnerID == user.ID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot kick owner from room"})
+		return
+	}
+
+	// Remove user from the connected users list of the room
+	err = patchedRoom.RemoveUser(ctx, db, &user)
+	if err != nil {
+		log.Printf("Failed to remove user from room: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to remove user from room"})
+		return
+	}
+
+	err = db.WithContext(ctx).Save(&patchedRoom).Error
+	if err != nil {
+		log.Printf("Failed to modify document: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Room not modified"})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
