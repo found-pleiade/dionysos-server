@@ -11,11 +11,21 @@ import (
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
-	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
+	routes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 )
 
-// CreateUser creates a user in the database
+// CreateUser godoc
+// @Summary      Creates a user. Needed for further request during authentication.
+// @Description  Creates a user. You will need to use BasicAuth to authenticate with the created user, using its ID and password produced by this endpoint.
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        user body models.UserUpdate true "User object"
+// @Success      201	{object} utils.CreateResponse "User created"
+// @Failure      400	{object} utils.ErrorResponse "Invalid request"
+// @Failure      500	{object} utils.ErrorResponse "Internal server error"
+// @Router       /users [post]
 func CreateUser(c *gin.Context) {
 	var u models.UserUpdate
 	rand.Seed(time.Now().UnixNano())
@@ -24,7 +34,7 @@ func CreateUser(c *gin.Context) {
 	defer cancelCtx()
 
 	if err := c.ShouldBindJSON(&u); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse(err.Error()))
 		log.Printf("Failed to bind JSON: %v", err)
 		return
 	}
@@ -39,15 +49,25 @@ func CreateUser(c *gin.Context) {
 	err := db.WithContext(ctx).Create(&user).Error
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not created"})
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("User not created"))
 		log.Printf("Failed to create document: %v", err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, utils.CreateResponse{URI: "/users/" + fmt.Sprint(user.ID), Password: user.Password})
+	c.JSON(http.StatusCreated, routes.CreateResponse{URI: "/users/" + fmt.Sprint(user.ID), Password: user.Password})
 }
 
-// GetUser returns a user from the database
+// GetUser godoc
+// @Summary      Gets a user.
+// @Tags         Users
+// @Security     BasicAuth
+// @Produce      json
+// @Param        id path int true "User ID"
+// @Success      200 	{object} models.User
+// @Failure      400 	{object} utils.ErrorResponse "Invalid request"
+// @Failure      401 	{object} utils.ErrorResponse "User not authorized"
+// @Failure      404 	{object} utils.ErrorResponse "User not found"
+// @Router       /users/{id} [get]
 func GetUser(c *gin.Context) {
 	var user models.User
 
@@ -56,14 +76,14 @@ func GetUser(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid user ID"))
 		log.Printf("Failed to convert user ID: %v", err)
 	}
 
 	err = db.WithContext(ctx).First(&user, id).Error
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("User not found"))
 		log.Printf("Failed to find document: %v", err)
 		return
 	}
@@ -71,12 +91,25 @@ func GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-// UpdateUser updates a user in the database
+// UpdateUser godoc
+// @Summary      Updates a user.
+// @Tags         Users
+// @Security     BasicAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path int               true "User ID"
+// @Param        user body models.UserUpdate true "User object"
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "User not found"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /users/{id} [patch]
 func UpdateUser(c *gin.Context) {
 	var u models.UserUpdate
-	patchedUser, err := utils.ExtractUserFromContext(c)
+	patchedUser, err := routes.ExtractUserFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found in context. Has it been set in the middleware?"})
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("User not found in context. Has it been set in the middleware?"))
 		log.Printf("Failed to extract user from context: %v", err)
 	}
 
@@ -85,26 +118,26 @@ func UpdateUser(c *gin.Context) {
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid user ID"))
 		log.Printf("Failed to convert user ID: %v", err)
 	}
 
 	// Assert the request is coming from the right user.
-	if err := utils.AssertUser(c, id); err != nil {
+	if err := routes.AssertUser(c, id); err != nil {
 		log.Printf("Failed to assert user: %v", err)
 		return
 	}
 
 	// Test if data is valid.
 	if err := c.ShouldBindJSON(&u); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse(err.Error()))
 		log.Printf("Failed to bind JSON: %v", err)
 		return
 	}
 
 	err = db.WithContext(ctx).Model(&patchedUser).Updates(u.ToUser()).Error
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not modified"})
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("User not modified"))
 		log.Printf("Failed to modify document: %v", err)
 		return
 	}
@@ -112,19 +145,29 @@ func UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// DeleteUser deletes a user in the database
+// DeleteUser godoc
+// @Summary      Deletes a user. Should be used when disconnecting a user.
+// @Tags         Users
+// @Security     BasicAuth
+// @Param        id path int true "User ID"
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "User not found"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /users/{id} [delete]
 func DeleteUser(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid user ID"))
 		log.Printf("Failed to convert user ID: %v", err)
 	}
 
 	// Assert the request is coming from the right user.
-	if err := utils.AssertUser(c, id); err != nil {
+	if err := routes.AssertUser(c, id); err != nil {
 		log.Printf("Failed to assert user: %v", err)
 		return
 	}
@@ -132,11 +175,11 @@ func DeleteUser(c *gin.Context) {
 	result := db.WithContext(ctx).Delete(&models.User{}, id)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not deleted"})
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("User not deleted"))
 		log.Printf("Failed to delete document: %v", result.Error)
 		return
 	} else if result.RowsAffected < 1 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("User not found"))
 		log.Printf("Failed to find document: %v", result.Error)
 		return
 	}

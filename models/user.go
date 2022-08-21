@@ -15,7 +15,7 @@ type User struct {
 }
 
 type UserUpdate struct {
-	Name string `json:"name,omitempty" binding:"gte=2,lte=20"`
+	Name string `json:"name,omitempty" binding:"gte=2,lte=20" example:"Diablox9"`
 }
 
 // ToUser converts a UserUpdate to a User

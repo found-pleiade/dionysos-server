@@ -19,7 +19,7 @@ type Room struct {
 }
 
 type RoomUpdate struct {
-	Name string `json:"name,omitempty" binding:"gte=2,lte=20"`
+	Name string `json:"name,omitempty" binding:"gte=2,lte=20" example:"BirthdayParty"`
 }
 
 // ToRoom converts a RoomUpdate to a Room
