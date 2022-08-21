@@ -21,10 +21,10 @@ import (
 // @Tags         Users
 // @Accept       json
 // @Produce      json
-// @Param user body models.UserUpdate true "User object"
-// @Success      201 {object} utils.CreateResponse "User created"
-// @Failure      400 {object} utils.ErrorResponse "Invalid request"
-// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Param 			 user	body	models.UserUpdate	true	"User object"
+// @Success      201	{object} utils.CreateResponse "User created"
+// @Failure      400	{object} utils.ErrorResponse "Invalid request"
+// @Failure      500	{object} utils.ErrorResponse "Internal server error"
 // @Router       /users [post]
 func CreateUser(c *gin.Context) {
 	var u models.UserUpdate
@@ -60,13 +60,13 @@ func CreateUser(c *gin.Context) {
 // GetUser godoc
 // @Summary      Gets a user.
 // @Tags         Users
-// @Security BasicAuth
+// @Security 		 BasicAuth
 // @Produce      json
-// @Param 			 id path int true "User ID"
-// @Success      200 {object} models.User
-// @Failure      400 {object} utils.ErrorResponse "Invalid request"
-// @Failure      401 {object} utils.ErrorResponse "User not authorized"
-// @Failure      404 {object} utils.ErrorResponse "User not found"
+// @Param 			 id 	path	int	true	"User ID"
+// @Success      200 	{object} models.User
+// @Failure      400 	{object} utils.ErrorResponse "Invalid request"
+// @Failure      401 	{object} utils.ErrorResponse "User not authorized"
+// @Failure      404 	{object} utils.ErrorResponse "User not found"
 // @Router       /users/{id} [get]
 func GetUser(c *gin.Context) {
 	var user models.User
@@ -94,11 +94,11 @@ func GetUser(c *gin.Context) {
 // UpdateUser godoc
 // @Summary      Updates a user.
 // @Tags         Users
-// @Security BasicAuth
+// @Security 		 BasicAuth
 // @Accept       json
 // @Produce      json
-// @Param id path int true "User ID"
-// @Param user body models.UserUpdate true "User object"
+// @Param 			 id 	path 	int							  true	"User ID"
+// @Param 			 user body 	models.UserUpdate true	"User object"
 // @Success      204
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      401 {object} utils.ErrorResponse "User not authorized"
@@ -148,8 +148,8 @@ func UpdateUser(c *gin.Context) {
 // DeleteUser godoc
 // @Summary      Deletes a user. Should be used when disconnecting a user.
 // @Tags         Users
-// @Security BasicAuth
-// @Param id path int true "User ID"
+// @Security 		 BasicAuth
+// @Param 			 id	path	int	true	"User ID"
 // @Success      204
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      401 {object} utils.ErrorResponse "User not authorized"
