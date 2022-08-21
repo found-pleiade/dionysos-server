@@ -15,7 +15,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CreateUser creates a user in the database
+// CreateUser godoc
+// @Summary      Creates a user. Needed for further request during authentication.
+// @Description  Creates a user. You will need to use BasicAuth to authenticate with the created user, using its ID and password produced by this endpoint.
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param user body models.UserUpdate true "User object"
+// @Success      201 {object} utils.CreateResponse "User created"
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /users [post]
 func CreateUser(c *gin.Context) {
 	var u models.UserUpdate
 	rand.Seed(time.Now().UnixNano())
@@ -47,7 +57,17 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, routes.CreateResponse{URI: "/users/" + fmt.Sprint(user.ID), Password: user.Password})
 }
 
-// GetUser returns a user from the database
+// GetUser godoc
+// @Summary      Gets a user.
+// @Tags         Users
+// @Security BasicAuth
+// @Produce      json
+// @Param 			 id path int true "User ID"
+// @Success      200 {object} models.User
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "User not found"
+// @Router       /users/{id} [get]
 func GetUser(c *gin.Context) {
 	var user models.User
 
@@ -71,7 +91,20 @@ func GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-// UpdateUser updates a user in the database
+// UpdateUser godoc
+// @Summary      Updates a user.
+// @Tags         Users
+// @Security BasicAuth
+// @Accept       json
+// @Produce      json
+// @Param id path int true "User ID"
+// @Param user body models.UserUpdate true "User object"
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "User not found"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /users/{id} [patch]
 func UpdateUser(c *gin.Context) {
 	var u models.UserUpdate
 	patchedUser, err := routes.ExtractUserFromContext(c)
@@ -112,7 +145,17 @@ func UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// DeleteUser deletes a user in the database
+// DeleteUser godoc
+// @Summary      Deletes a user. Should be used when disconnecting a user.
+// @Tags         Users
+// @Security BasicAuth
+// @Param id path int true "User ID"
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "User not found"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /users/{id} [delete]
 func DeleteUser(c *gin.Context) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()

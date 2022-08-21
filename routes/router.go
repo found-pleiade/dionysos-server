@@ -11,12 +11,16 @@ import (
 
 	"github.com/Brawdunoir/dionysos-server/database"
 	"github.com/Brawdunoir/dionysos-server/models"
+	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/Brawdunoir/dionysos-server/variables"
 	cache "github.com/chenyahui/gin-cache"
 	"github.com/chenyahui/gin-cache/persist"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
+
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 var redisStore *persist.RedisStore
@@ -26,8 +30,6 @@ var db *gorm.DB = database.DB
 
 // SetupRouter sets up the router
 func SetupRouter(router *gin.Engine) *gin.Engine {
-	basePath := variables.BasePath
-
 	router.Use(options)
 	router.Use(gin.Recovery())
 
@@ -39,7 +41,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		redisStore = persist.NewRedisStore(redis.NewClient(redisURL))
 	}
 
-	r := router.Group(basePath)
+	r := router.Group(variables.BasePath)
 	{
 		// We should not use the authentication middleware for the /users endpoint because the password is generated during the user creation.
 		r.POST("/users", CreateUser)
@@ -74,6 +76,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		}
 		// Version
 		r.GET("/version", GetVersion)
+		r.GET("/doc/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 		r.GET("/healthz", Healthz)
 	}
 
@@ -114,7 +117,7 @@ func authentication(c *gin.Context) {
 	// set a WWW-Authenticate header to inform the client that we expect them
 	// to use basic authentication and send a 401 Unauthorized response.
 	c.Header("WWW-Authenticate", `Basic id:password charset="UTF-8"`)
-	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "User not authorized"})
+	c.AbortWithStatusJSON(http.StatusUnauthorized, utils.CreateErrorResponse("User not authorized"))
 }
 
 // Middleware for CORS requests.

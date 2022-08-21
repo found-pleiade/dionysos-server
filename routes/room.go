@@ -18,7 +18,19 @@ import (
 	"gorm.io/gorm"
 )
 
-// CreateRoom creates a room in the database.
+// CreateRoom godoc
+// @Summary      Creates a room.
+// @Tags         Rooms
+// @Security BasicAuth
+// @Accept       json
+// @Produce      json
+// @Param room body models.RoomUpdate true "Room object"
+// @Success      201 {object} utils.CreateResponse "Room created"
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "Invalid user in auth method"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /rooms [post]
 func CreateRoom(c *gin.Context) {
 	var r models.RoomUpdate
 
@@ -61,7 +73,18 @@ func CreateRoom(c *gin.Context) {
 	c.JSON(http.StatusCreated, routes.CreateResponse{URI: "/rooms/" + fmt.Sprint(room.ID)})
 }
 
-// GetRoom returns a room from the database.
+// GetRoom godoc
+// @Summary      Gets a room.
+// @Tags         Rooms
+// @Security BasicAuth
+// @Produce      json
+// @Param 			 id path int true "Room ID"
+// @Success      200 {object} models.Room
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "Room not found or invalid user in auth method"
+// @Failure      404 {object} utils.ErrorResponse "Invalid user in auth method"
+// @Router       /rooms/{id} [get]
 func GetRoom(c *gin.Context) {
 	var room models.Room
 
@@ -84,7 +107,20 @@ func GetRoom(c *gin.Context) {
 	c.JSON(http.StatusOK, room)
 }
 
-// UpdateRoom updates a room in the database.
+// UpdateRoom godoc
+// @Summary      Updates a room.
+// @Tags         Rooms
+// @Security BasicAuth
+// @Accept       json
+// @Produce      json
+// @Param id path int true "Room ID"
+// @Param room body models.RoomUpdate true "Room object"
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "Room not found or invalid user in auth method"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /rooms/{id} [patch]
 func UpdateRoom(c *gin.Context) {
 	var r models.RoomUpdate
 	var patchedRoom models.Room
@@ -135,7 +171,19 @@ func UpdateRoom(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// ConnectUserToRoom connects a user to a room in the database.
+// ConnectUserToRoom godoc
+// @Summary      Connects a user to a room.
+// @Tags         Rooms
+// @Security BasicAuth
+// @Produce      json
+// @Param id path int true "Room ID"
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "Room not found or invalid user in auth method"
+// @Failure      409 {object} utils.ErrorResponse "User already in room"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /rooms/{id}/connect [patch]
 func ConnectUserToRoom(c *gin.Context) {
 	var user models.User
 	var room models.Room
@@ -183,7 +231,18 @@ func ConnectUserToRoom(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// DisconnectUserFromRoom disconnects a user from a room in the database.
+// DisconnectUserFromRoom godoc
+// @Summary      Disconnects a user from a room.
+// @Tags         Rooms
+// @Security BasicAuth
+// @Produce      json
+// @Param id path int true "Room ID"
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "Room not found or invalid user in auth method"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /rooms/{id}/disconnect [patch]
 func DisconnectUserFromRoom(c *gin.Context) {
 	var user models.User
 	var room models.Room
