@@ -3,11 +3,9 @@ package routes
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
@@ -15,7 +13,6 @@ import (
 	routes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slices"
-	"gorm.io/gorm"
 )
 
 // CreateRoom godoc
@@ -88,19 +85,13 @@ func CreateRoom(c *gin.Context) {
 func GetRoom(c *gin.Context) {
 	var room models.Room
 
-	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
+	_, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
-		log.Printf("Failed to convert room ID: %v", err)
-	}
-
-	err = room.GetRoom(ctx, db, id)
-	if err != nil {
+		log.Printf("Failed to extract room from context: %v", err)
 		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
-		log.Printf("Failed to find document: %v", err)
 		return
 	}
 
@@ -123,15 +114,14 @@ func GetRoom(c *gin.Context) {
 // @Router       /rooms/{id} [patch]
 func UpdateRoom(c *gin.Context) {
 	var r models.RoomUpdate
-	var patchedRoom models.Room
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	id, err := strconv.Atoi(c.Param("id"))
+	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
-		log.Printf("Failed to convert room ID: %v", err)
+		log.Printf("Failed to extract room from context: %v", err)
+		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
 		return
 	}
 
@@ -142,30 +132,19 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
-	err = db.WithContext(ctx).First(&patchedRoom, id).Error
+	// Check if requester is the owner of the room
+	err = routes.AssertUser(c, room.OwnerID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
-			return
-		} else {
-			c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not updated"))
-			log.Printf("Failed to modify document: %v", err)
-			return
-		}
-	} else {
-		// Check if requester is the owner of the room
-		err := routes.AssertUser(c, patchedRoom.OwnerID)
-		if err != nil {
-			log.Printf("Error when asserting user: %v", err)
-			return
-		}
+		log.Printf("Error when asserting user: %v", err)
+		return
 
-		err = db.WithContext(ctx).Model(&patchedRoom).Updates(r.ToRoom()).Error
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not modified"))
-			log.Printf("Failed to modify document: %v", err)
-			return
-		}
+	}
+
+	err = db.WithContext(ctx).Model(&room).Updates(r.ToRoom()).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not modified"))
+		log.Printf("Failed to modify document: %v", err)
+		return
 	}
 
 	c.JSON(http.StatusNoContent, nil)
@@ -185,9 +164,6 @@ func UpdateRoom(c *gin.Context) {
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
 // @Router       /rooms/{id}/connect [patch]
 func ConnectUserToRoom(c *gin.Context) {
-	var user models.User
-	var room models.Room
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
@@ -198,16 +174,9 @@ func ConnectUserToRoom(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
-		log.Printf("Failed to convert room ID: %v", err)
-		return
-	}
-
-	err = room.GetRoom(ctx, db, id)
-	if err != nil {
-		log.Printf("Failed to find document: %v", err)
+		log.Printf("Failed to extract room from context: %v", err)
 		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
 		return
 	}
@@ -244,9 +213,6 @@ func ConnectUserToRoom(c *gin.Context) {
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
 // @Router       /rooms/{id}/disconnect [patch]
 func DisconnectUserFromRoom(c *gin.Context) {
-	var user models.User
-	var room models.Room
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
@@ -257,16 +223,9 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		log.Printf("Failed to convert room ID: %v", err)
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
-		return
-	}
-
-	err = room.GetRoom(ctx, db, id)
-	if err != nil {
-		log.Printf("Failed to find document: %v", err)
+		log.Printf("Failed to extract room from context: %v", err)
 		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
 		return
 	}

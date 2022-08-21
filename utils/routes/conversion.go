@@ -20,3 +20,16 @@ func ExtractUserFromContext(c *gin.Context) (models.User, error) {
 
 	return user, nil
 }
+
+func ExtractRoomFromContext(c *gin.Context) (models.Room, error) {
+	val, ok := c.Get(variables.ROOM_CONTEXT_KEY)
+	if !ok {
+		return models.Room{}, errors.New("room not found in context")
+	}
+	room, ok := val.(models.Room)
+	if !ok {
+		return models.Room{}, errors.New("value found in context but it was not a room")
+	}
+
+	return room, nil
+}

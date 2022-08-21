@@ -7,11 +7,12 @@ import (
 	"crypto/subtle"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/database"
 	"github.com/Brawdunoir/dionysos-server/models"
-	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
+	routes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/Brawdunoir/dionysos-server/variables"
 	cache "github.com/chenyahui/gin-cache"
 	"github.com/chenyahui/gin-cache/persist"
@@ -45,8 +46,9 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 	{
 		// We should not use the authentication middleware for the /users endpoint because the password is generated during the user creation.
 		r.POST("/users", CreateUser)
+		r.Use(authentication)
 
-		userRouter := r.Group("/users", authentication)
+		userRouter := r.Group("/users")
 		{
 			if redisStore != nil {
 				userRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetUser)
@@ -59,9 +61,10 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			}
 		}
 
-		roomRouter := r.Group("/rooms", authentication)
+		roomRouter := r.Group("/rooms")
 		{
 			roomRouter.POST("", CreateRoom)
+			roomRouter.Use(retrieveRoom)
 			if redisStore != nil {
 				roomRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetRoom)
 				roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
@@ -117,7 +120,7 @@ func authentication(c *gin.Context) {
 	// set a WWW-Authenticate header to inform the client that we expect them
 	// to use basic authentication and send a 401 Unauthorized response.
 	c.Header("WWW-Authenticate", `Basic id:password charset="UTF-8"`)
-	c.AbortWithStatusJSON(http.StatusUnauthorized, utils.CreateErrorResponse("User not authorized"))
+	c.AbortWithStatusJSON(http.StatusUnauthorized, routes.CreateErrorResponse("User not authorized"))
 }
 
 // Middleware for CORS requests.
@@ -145,4 +148,24 @@ func invalidateCacheURI(c *gin.Context) {
 			log.Printf("Failed to invalidate cache: %v", err)
 		}
 	}
+}
+
+func retrieveRoom(c *gin.Context) {
+	var room models.Room
+
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		log.Printf("Failed to convert room ID: %v", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
+		return
+	}
+
+	err = room.GetRoom(c, db, id)
+	if err != nil {
+		log.Printf("Failed to find document: %v", err)
+		c.AbortWithStatusJSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+		return
+	}
+	c.Set(variables.ROOM_CONTEXT_KEY, room)
+	c.Next()
 }
