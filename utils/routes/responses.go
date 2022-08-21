@@ -12,7 +12,9 @@ type ErrorResponse struct {
 }
 
 type CreateResponse struct {
-	URI      string `json:"uri"`
+	URI string `json:"uri"`
+
+	// Only set for user creation
 	Password string `json:"password,omitempty"`
 }
 

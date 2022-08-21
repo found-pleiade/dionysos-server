@@ -305,12 +305,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
-                    "409": {
-                        "description": "User already in room",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
-                        }
-                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -586,7 +580,8 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "maxLength": 20,
-                    "minLength": 2
+                    "minLength": 2,
+                    "example": "BirthdayParty"
                 }
             }
         },
@@ -613,7 +608,8 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "maxLength": 20,
-                    "minLength": 2
+                    "minLength": 2,
+                    "example": "Diablox9"
                 }
             }
         },
@@ -621,6 +617,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "password": {
+                    "description": "Only set for user creation",
                     "type": "string"
                 },
                 "uri": {

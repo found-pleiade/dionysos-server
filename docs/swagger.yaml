@@ -18,6 +18,7 @@ definitions:
   models.RoomUpdate:
     properties:
       name:
+        example: BirthdayParty
         maxLength: 20
         minLength: 2
         type: string
@@ -37,6 +38,7 @@ definitions:
   models.UserUpdate:
     properties:
       name:
+        example: Diablox9
         maxLength: 20
         minLength: 2
         type: string
@@ -44,6 +46,7 @@ definitions:
   utils.CreateResponse:
     properties:
       password:
+        description: Only set for user creation
         type: string
       uri:
         type: string
@@ -236,10 +239,6 @@ paths:
             $ref: '#/definitions/utils.ErrorResponse'
         "404":
           description: Room not found or invalid user in auth method
-          schema:
-            $ref: '#/definitions/utils.ErrorResponse'
-        "409":
-          description: User already in room
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
         "500":
