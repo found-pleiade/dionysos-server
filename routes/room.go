@@ -21,10 +21,10 @@ import (
 // CreateRoom godoc
 // @Summary      Creates a room.
 // @Tags         Rooms
-// @Security 		 BasicAuth
+// @Security     BasicAuth
 // @Accept       json
 // @Produce      json
-// @Param 			 room	body	models.RoomUpdate	true	"Room object"
+// @Param        room body models.RoomUpdate true "Room object"
 // @Success      201 {object} utils.CreateResponse "Room created"
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      401 {object} utils.ErrorResponse "User not authorized"
@@ -76,9 +76,9 @@ func CreateRoom(c *gin.Context) {
 // GetRoom godoc
 // @Summary      Gets a room.
 // @Tags         Rooms
-// @Security 		 BasicAuth
+// @Security     BasicAuth
 // @Produce      json
-// @Param 			 id	path	int	true	"Room ID"
+// @Param        id path int true "Room ID"
 // @Success      200 {object} models.Room
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      401 {object} utils.ErrorResponse "User not authorized"
@@ -110,11 +110,11 @@ func GetRoom(c *gin.Context) {
 // UpdateRoom godoc
 // @Summary      Updates a room.
 // @Tags         Rooms
-// @Security 		 BasicAuth
+// @Security     BasicAuth
 // @Accept       json
 // @Produce      json
-// @Param 			 id		path	int								true	"Room ID"
-// @Param 			 room body 	models.RoomUpdate true	"Room object"
+// @Param        id   path int               true "Room ID"
+// @Param        room body models.RoomUpdate true "Room object"
 // @Success      204
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      401 {object} utils.ErrorResponse "User not authorized"
@@ -174,9 +174,9 @@ func UpdateRoom(c *gin.Context) {
 // ConnectUserToRoom godoc
 // @Summary      Connects a user to a room.
 // @Tags         Rooms
-// @Security 		 BasicAuth
+// @Security     BasicAuth
 // @Produce      json
-// @Param 			 id	path	int	true	"Room ID"
+// @Param        id path int true "Room ID"
 // @Success      204
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      401 {object} utils.ErrorResponse "User not authorized"
@@ -234,9 +234,9 @@ func ConnectUserToRoom(c *gin.Context) {
 // DisconnectUserFromRoom godoc
 // @Summary      Disconnects a user from a room.
 // @Tags         Rooms
-// @Security 		 BasicAuth
+// @Security     BasicAuth
 // @Produce      json
-// @Param 			 id	path	int	true	"Room ID"
+// @Param        id path int true "Room ID"
 // @Success      204
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
 // @Failure      401 {object} utils.ErrorResponse "User not authorized"
