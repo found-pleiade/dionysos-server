@@ -13,7 +13,7 @@ import (
 const VERSION = "0.2.0"
 
 // @title           Dionysos
-// @description     API instance for dionysos client application.
+// @description     API instance for the Dionysos client application.
 // @securityDefinitions.basic BasicAuth
 
 // @contact.name   API Support

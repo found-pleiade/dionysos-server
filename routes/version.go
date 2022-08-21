@@ -9,7 +9,7 @@ import (
 )
 
 // GetUser godoc
-// @Summary      Get the api version
+// @Summary      Get the api version.
 // @Tags         Misc
 // @Produce      plain
 // @Success      200 {string} plain "Version as x.x.x"
