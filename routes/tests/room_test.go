@@ -196,35 +196,6 @@ func TestDisconnectRoom(t *testing.T) {
 	test.Run(t)
 }
 
-// TestKickUser tests the KickUserFromRoom function.
-func TestKickUser(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
-	if err != nil {
-		t.Error(err)
-	}
-
-	// Create the user that will be used to pursue the tests.
-	_, headers, err := utils.CreateTestUser(models.User{Name: "test"})
-	if err != nil {
-		t.Error(err)
-	}
-
-	method := http.MethodPatch
-	target := "/disconnect"
-	test := utils.TestRUD{
-		CreateRequest:        roomCreateRequest,
-		CreateRequestHeaders: headers,
-		CreateResponse:       CreateResponseRoom{},
-		SubTests: []utils.SubTest{
-			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc" + target}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
-			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321" + target}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
-			{Name: "Success", Request: utils.Request{Target: target, Method: method, Headers: headers}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
-			{Name: "Room should be deleted", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
-		},
-	}
-	test.Run(t)
-}
-
 // TestRoomScenarioA is the following scenario:
 // — 3 users (A, B, C) join the room, A is the owner.
 // — C disconnects, nothing happens.
