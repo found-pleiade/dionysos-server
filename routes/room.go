@@ -315,7 +315,7 @@ func DisconnectUserFromRoom(c *gin.Context) {
 // @Tags         Rooms
 // @Security     BasicAuth
 // @Produce      json
-// @Param        id path int true "Room ID"
+// @Param        id 	path int true "Room ID"
 // @Param        userid path int true "User ID"
 // @Success      204
 // @Failure      400 {object} utils.ErrorResponse "Invalid request"
