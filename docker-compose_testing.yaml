@@ -9,7 +9,7 @@ services:
     image: postgres:14
     command: -p ${POSTGRES_PORT}
     ports:
-      - 5432:5432
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
       - /tmp/postgres-${RANDOM}:/var/lib/postgresql/data
     environment:
