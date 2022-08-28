@@ -67,7 +67,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 				roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
 				roomRouter.PATCH("/:id/connect", invalidateCacheURI, ConnectUserToRoom)
 				roomRouter.PATCH("/:id/disconnect", invalidateCacheURI, DisconnectUserFromRoom)
-				roomRouter.PATCH("/:roomid/kick/:userid", invalidateCacheURI, KickUserFromRoom)
+				roomRouter.PATCH("/:id/kick/:userid", invalidateCacheURI, KickUserFromRoom)
 			} else {
 				roomRouter.GET("/:id", GetRoom)
 				roomRouter.PATCH("/:id", UpdateRoom)
