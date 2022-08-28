@@ -47,8 +47,13 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 
 	r := router.Group(variables.BasePath)
 	{
-		// We should not use the authentication middleware for the /users endpoint because the password is generated during the user creation.
+		// We should not use the authentication middleware on these routes.
+		r.GET("/healthz", Healthz)
+		r.GET("/version", GetVersion)
+		r.GET("/doc/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+
 		r.POST("/users", CreateUser)
+
 		r.Use(authentication)
 
 		userRouter := r.Group("/users")
@@ -81,10 +86,6 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 				roomRouter.PATCH("/:id/disconnect", DisconnectUserFromRoom)
 			}
 		}
-		// Version
-		r.GET("/version", GetVersion)
-		r.GET("/doc/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-		r.GET("/healthz", Healthz)
 	}
 
 	return router
