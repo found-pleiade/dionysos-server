@@ -79,4 +79,4 @@ We have a script that runs a postgresSQL database and run `go test` automaticall
 `./test.sh`
 
 ## Documentation
-WIP #59
+See the API documentation at <https://api.dionysos.live/doc/index.html>.
