@@ -148,10 +148,11 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
-	if stream, ok := listStreamsRoom[room.ID]; ok {
-		if r.Name != "" {
-			stream.Message <- Message{Event: "roomNameUpdated", Data: room.Name}
-		}
+	stream, ok := listStreamsRoom[room.ID]
+	if ok {
+		stream.distribute(Message{Event: "roomNameUpdated", Data: room.Name})
+	} else {
+		log.Printf("Problem with stream of room %v", room.ID)
 	}
 
 	c.JSON(http.StatusNoContent, nil)
@@ -204,8 +205,11 @@ func ConnectUserToRoom(c *gin.Context) {
 		return
 	}
 
-	if stream, ok := listStreamsRoom[room.ID]; ok {
-		stream.Message <- Message{Event: "userConnected", Data: user}
+	stream, ok := listStreamsRoom[room.ID]
+	if ok {
+		stream.distribute(Message{Event: "userConnected", Data: user})
+	} else {
+		log.Printf("Problem with stream of room %v", room.ID)
 	}
 
 	c.JSON(http.StatusNoContent, nil)
@@ -277,8 +281,11 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	if stream, ok := listStreamsRoom[room.ID]; ok {
-		stream.Message <- Message{Event: "userDisconnected", Data: user.ID}
+	stream, ok := listStreamsRoom[room.ID]
+	if ok {
+		stream.distribute(Message{Event: "userDisconnected", Data: user.ID})
+	} else {
+		log.Printf("Problem with stream of room %v", room.ID)
 	}
 
 	c.JSON(http.StatusNoContent, nil)
@@ -286,27 +293,36 @@ func DisconnectUserFromRoom(c *gin.Context) {
 
 // StreamRoom WIP.
 func StreamRoom(c *gin.Context) {
+	var stream Stream
 	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
 		log.Printf("Failed to extract room from context: %v", err)
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+		c.AbortWithStatusJSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+	}
+
+	user, err := routes.ExtractUserFromContext(c)
+	if err != nil {
+		log.Printf("Failed to extract user from context: %v", err)
+		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("User not found"))
 		return
 	}
 
 	stream, ok := listStreamsRoom[room.ID]
 	if !ok {
-		log.Printf("Stream has not been initialized or cannot be retrieved: %v", err)
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Stream not found or broken"))
-		return
+		stream.create()
+		listStreamsRoom[room.ID] = stream
 	}
 
-	c.Stream(func(w io.Writer) bool {
-		// Stream message to client from message channel
-		c.SSEvent("testMessage", "test sample")
-		if msg, ok := <-stream.Message; ok {
-			c.SSEvent("message", msg)
+	stream.addSub(user.ID)
+
+	close := c.Stream(func(w io.Writer) bool {
+		if msg, ok := <-stream.ClientChan[user.ID]; ok {
+			c.SSEvent(msg.Event, msg.Data)
 			return true
 		}
 		return false
 	})
+	if close {
+		stream.delSub(user.ID)
+	}
 }

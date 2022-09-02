@@ -25,7 +25,7 @@ import (
 )
 
 // Keep track of all SSE channels that are currently on service.
-var listStreamsRoom = make(map[uint64]*Event)
+var listStreamsRoom = make(map[uint64]Stream)
 
 var redisStore *persist.RedisStore
 
@@ -73,7 +73,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		{
 			roomRouter.POST("", CreateRoom)
 			roomRouter.Use(retrieveRoom)
-			roomRouter.GET("/:id/stream", HeadersSSE(), serveStream(), StreamRoom)
+			roomRouter.GET("/:id/stream", HeadersSSE, StreamRoom)
 			if redisStore != nil {
 				roomRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetRoom)
 				roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
@@ -104,7 +104,7 @@ func authentication(c *gin.Context) {
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found during authentication"})
-			log.Printf("Failed to find document: %v", err)
+			log.Printf("Failed to find user: %v", err)
 			return
 		}
 		// Calculate SHA-256 hashes for the provided and expected passwords.
@@ -173,42 +173,4 @@ func retrieveRoom(c *gin.Context) {
 	}
 	c.Set(variables.ROOM_CONTEXT_KEY, room)
 	c.Next()
-}
-
-// serveStream serves a stream to a new client.
-// Needs retrieveRoom middleware to be run before this.
-func serveStream() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var stream *Event
-		room, err := routes.ExtractRoomFromContext(c)
-		if err != nil {
-			log.Printf("Failed to extract room from context: %v", err)
-			c.AbortWithStatusJSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
-		}
-
-		stream, ok := listStreamsRoom[room.ID]
-		if !ok {
-			stream = newServer()
-			listStreamsRoom[room.ID] = stream
-		}
-
-		// Initialize client channel
-		clientChan := make(ClientChan)
-
-		// Send new connection to event server
-		stream.NewClients <- clientChan
-
-		defer func() {
-			// Send closed connection to event server
-			stream.ClosedClients <- clientChan
-		}()
-
-		go func() {
-			// Send connection that is closed by client to event server
-			<-c.Done()
-			stream.ClosedClients <- clientChan
-		}()
-
-		c.Next()
-	}
 }
