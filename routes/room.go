@@ -302,6 +302,7 @@ func StreamRoom(c *gin.Context) {
 
 	c.Stream(func(w io.Writer) bool {
 		// Stream message to client from message channel
+		c.SSEvent("testMessage", "test sample")
 		if msg, ok := <-stream.Message; ok {
 			c.SSEvent("message", msg)
 			return true
