@@ -63,6 +63,6 @@ func HeadersSSE(c *gin.Context) {
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
 	c.Header("Transfer-Encoding", "chunked")
-	// c.Header("Access-Control-Allow-Origin", "*")
+	c.Header("Access-Control-Allow-Origin", "*")
 	c.Next()
 }
