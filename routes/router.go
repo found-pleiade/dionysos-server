@@ -60,8 +60,8 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		{
 			if redisStore != nil {
 				userRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetUser)
-				userRouter.PATCH("/:id", invalidateCacheURI, UpdateUser)
-				userRouter.DELETE("/:id", invalidateCacheURI, DeleteUser)
+				userRouter.PATCH("/:id", invalidateCacheURI("users"), UpdateUser)
+				userRouter.DELETE("/:id", invalidateCacheURI("users"), DeleteUser)
 			} else {
 				userRouter.GET("/:id", GetUser)
 				userRouter.PATCH("/:id", UpdateUser)
@@ -76,9 +76,9 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			roomRouter.GET("/:id/stream", HeadersSSE, StreamRoom)
 			if redisStore != nil {
 				roomRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetRoom)
-				roomRouter.PATCH("/:id", invalidateCacheURI, UpdateRoom)
-				roomRouter.PATCH("/:id/connect", invalidateCacheURI, ConnectUserToRoom)
-				roomRouter.PATCH("/:id/disconnect", invalidateCacheURI, DisconnectUserFromRoom)
+				roomRouter.PATCH("/:id", invalidateCacheURI("rooms"), UpdateRoom)
+				roomRouter.PATCH("/:id/connect", invalidateCacheURI("rooms"), ConnectUserToRoom)
+				roomRouter.PATCH("/:id/disconnect", invalidateCacheURI("rooms"), DisconnectUserFromRoom)
 			} else {
 				roomRouter.GET("/:id", GetRoom)
 				roomRouter.PATCH("/:id", UpdateRoom)
@@ -143,14 +143,16 @@ func options(c *gin.Context) {
 }
 
 // Invalidate cache for a given URI.
-func invalidateCacheURI(c *gin.Context) {
-	c.Next()
-	// Get the response code.
-	code := c.Writer.Status()
-	if code >= 200 && code < 300 && redisStore != nil {
-		err := redisStore.Delete(c.Request.RequestURI)
-		if err != nil {
-			log.Printf("Failed to invalidate cache: %v", err)
+func invalidateCacheURI(resource string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		// Get the response code.
+		code := c.Writer.Status()
+		if code >= 200 && code < 300 && redisStore != nil {
+			err := redisStore.Delete(resource + "/" + c.Param("id"))
+			if err != nil {
+				log.Printf("Failed to invalidate cache: %v", err)
+			}
 		}
 	}
 }
