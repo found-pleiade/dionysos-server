@@ -150,7 +150,7 @@ func UpdateRoom(c *gin.Context) {
 
 	stream, ok := listStreamsRoom[room.ID]
 	if ok {
-		stream.distribute(Message{Event: "roomNameUpdated", Data: room.Name})
+		stream.distribute(Message{Event: "roomUpdate"})
 	} else {
 		log.Printf("Problem with stream of room %v", room.ID)
 	}
@@ -207,7 +207,7 @@ func ConnectUserToRoom(c *gin.Context) {
 
 	stream, ok := listStreamsRoom[room.ID]
 	if ok {
-		stream.distribute(Message{Event: "userConnected", Data: user})
+		stream.distribute(Message{Event: "roomUpdate"})
 	} else {
 		log.Printf("Problem with stream of room %v", room.ID)
 	}
@@ -283,7 +283,7 @@ func DisconnectUserFromRoom(c *gin.Context) {
 
 	stream, ok := listStreamsRoom[room.ID]
 	if ok {
-		stream.distribute(Message{Event: "userDisconnected", Data: user.ID})
+		stream.distribute(Message{Event: "roomUpdate"})
 	} else {
 		log.Printf("Problem with stream of room %v", room.ID)
 	}
