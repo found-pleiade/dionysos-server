@@ -10,7 +10,7 @@ import (
 )
 
 // VERSION as a constant variable
-const VERSION = "0.2.0"
+const VERSION = "0.3.0"
 
 // @title           Dionysos
 // @description     API instance for the Dionysos client application.
