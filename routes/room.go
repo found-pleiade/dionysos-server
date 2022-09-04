@@ -316,6 +316,7 @@ func StreamRoom(c *gin.Context) {
 	stream.addSub(user.ID)
 
 	close := c.Stream(func(w io.Writer) bool {
+		c.SSEvent("connected", "connected")
 		if msg, ok := <-stream.ClientChan[user.ID]; ok {
 			c.SSEvent(msg.Event, msg.Data)
 			return true
