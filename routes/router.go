@@ -12,6 +12,7 @@ import (
 
 	"github.com/Brawdunoir/dionysos-server/database"
 	"github.com/Brawdunoir/dionysos-server/models"
+	"github.com/Brawdunoir/dionysos-server/utils"
 	routes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/Brawdunoir/dionysos-server/variables"
 	cache "github.com/chenyahui/gin-cache"
@@ -23,9 +24,6 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
-
-// Keep track of all SSE channels that are currently on service.
-var listStreamsRoom = make(map[uint64]Stream)
 
 var redisStore *persist.RedisStore
 
@@ -73,7 +71,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		{
 			roomRouter.POST("", CreateRoom)
 			roomRouter.Use(retrieveRoom)
-			roomRouter.GET("/:id/stream", HeadersSSE, StreamRoom)
+			roomRouter.GET("/:id/stream", utils.HeadersSSE, StreamRoom)
 			if redisStore != nil {
 				roomRouter.GET("/:id", cache.CacheByRequestURI(redisStore, 60*time.Minute), GetRoom)
 				roomRouter.PATCH("/:id", invalidateCacheURI("rooms"), UpdateRoom)

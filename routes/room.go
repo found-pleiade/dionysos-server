@@ -16,6 +16,10 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// Keep track of all SSE channels that are currently on service.
+var listStreamsRoom = make(map[uint64]*utils.Stream)
+var SSEMessage = utils.Message{Event: "roomUpdate"}
+
 // CreateRoom godoc
 // @Summary      Creates a room.
 // @Tags         Rooms
@@ -148,11 +152,11 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
-	stream, ok := listStreamsRoom[room.ID]
-	if ok {
-		stream.distribute(Message{Event: "roomUpdate"})
+	stream, err := utils.GetStream(room.ID, listStreamsRoom)
+	if err != nil {
+		log.Printf("Failed to get stream: %v", err)
 	} else {
-		log.Printf("Problem with stream of room %v", room.ID)
+		stream.Distribute(SSEMessage)
 	}
 
 	c.JSON(http.StatusNoContent, nil)
@@ -205,11 +209,11 @@ func ConnectUserToRoom(c *gin.Context) {
 		return
 	}
 
-	stream, ok := listStreamsRoom[room.ID]
-	if ok {
-		stream.distribute(Message{Event: "roomUpdate"})
+	stream, err := utils.GetStream(room.ID, listStreamsRoom)
+	if err != nil {
+		log.Printf("Failed to get stream: %v", err)
 	} else {
-		log.Printf("Problem with stream of room %v", room.ID)
+		stream.Distribute(SSEMessage)
 	}
 
 	c.JSON(http.StatusNoContent, nil)
@@ -281,11 +285,11 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	stream, ok := listStreamsRoom[room.ID]
-	if ok {
-		stream.distribute(Message{Event: "roomUpdate"})
+	stream, err := utils.GetStream(room.ID, listStreamsRoom)
+	if err != nil {
+		log.Printf("Failed to get stream: %v", err)
 	} else {
-		log.Printf("Problem with stream of room %v", room.ID)
+		stream.Distribute(SSEMessage)
 	}
 
 	c.JSON(http.StatusNoContent, nil)
@@ -305,7 +309,6 @@ func DisconnectUserFromRoom(c *gin.Context) {
 // @Failure      404 {object} utils.ErrorResponse "Room not found or invalid user in auth method"
 // @Router       /rooms/{id}/stream [get]
 func StreamRoom(c *gin.Context) {
-	var stream Stream
 	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
 		log.Printf("Failed to extract room from context: %v", err)
@@ -319,16 +322,11 @@ func StreamRoom(c *gin.Context) {
 		return
 	}
 
-	stream, ok := listStreamsRoom[room.ID]
-	if !ok {
-		stream.create()
-		listStreamsRoom[room.ID] = stream
-	}
+	stream, _ := utils.GetAndCreateStream(room.ID, listStreamsRoom)
 
-	stream.addSub(user.ID)
+	_ = stream.AddSub(user.ID)
 
 	close := c.Stream(func(w io.Writer) bool {
-		c.SSEvent("connected", "connected")
 		if msg, ok := <-stream.ClientChan[user.ID]; ok {
 			c.SSEvent(msg.Event, msg.Data)
 			return true
@@ -336,6 +334,6 @@ func StreamRoom(c *gin.Context) {
 		return false
 	})
 	if close {
-		stream.delSub(user.ID)
+		stream.DelSub(user.ID)
 	}
 }
