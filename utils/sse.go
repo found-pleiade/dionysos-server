@@ -38,8 +38,10 @@ func GetStream(ID uint64, list map[uint64]*Stream) (*Stream, error) {
 }
 
 func (s *Stream) Distribute(m Message) {
-	for _, clientChan := range s.ClientChan {
-		clientChan <- m
+	for clientID, clientChan := range s.ClientChan {
+		if s.Users[clientID] {
+			clientChan <- m
+		}
 	}
 }
 
@@ -57,8 +59,11 @@ func (s *Stream) AddSub(id uint64) error {
 
 // DelSub removes an ID from a stream.
 func (s *Stream) DelSub(id uint64) error {
-	if _, ok := s.Users[id]; ok {
+	bool, ok := s.Users[id]
+	if !ok {
 		return errors.New("user has not subscribed to stream")
+	} else if !bool {
+		return errors.New("user has already been unsubscribed to stream")
 	}
 
 	close(s.ClientChan[id])
