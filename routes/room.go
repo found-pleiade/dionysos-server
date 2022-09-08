@@ -73,6 +73,9 @@ func CreateRoom(c *gin.Context) {
 		return
 	}
 
+	// Create a new SSE channel for the room.
+	_ = utils.CreateStream(room.ID, listStreamsRoom)
+
 	c.JSON(http.StatusCreated, routes.CreateResponse{URI: "/rooms/" + fmt.Sprint(room.ID)})
 }
 
@@ -302,6 +305,7 @@ func DisconnectUserFromRoom(c *gin.Context) {
 // @Success      200 "Send \"RoomUpdate\" event each time room is updated. Send 200 when stream is closed"
 // @Failure      401 {object} utils.ErrorResponse "User not authorized"
 // @Failure      404 {object} utils.ErrorResponse "Room not found or invalid user in auth method"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
 // @Router       /rooms/{id}/stream [get]
 func StreamRoom(c *gin.Context) {
 	room, err := routes.ExtractRoomFromContext(c)
@@ -317,7 +321,12 @@ func StreamRoom(c *gin.Context) {
 		return
 	}
 
-	stream, _ := utils.GetAndCreateStream(room.ID, listStreamsRoom)
+	stream, err := utils.GetStream(room.ID, listStreamsRoom)
+	if err != nil {
+		log.Printf("Failed to get stream: %v", err)
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Failed to get stream"))
+		return
+	}
 
 	_ = stream.AddSub(user.ID)
 

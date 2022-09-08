@@ -22,14 +22,10 @@ type Message struct {
 type MessageChan chan Message
 type ClientChan map[uint64]MessageChan
 
-// GetStream returns an existing stream or creates a new one if no one exists.
-func GetAndCreateStream(ID uint64, list map[uint64]*Stream) (*Stream, error) {
-	stream, ok := list[ID]
-	if !ok {
-		stream = newStream()
-		list[ID] = stream
-	}
-	return stream, nil
+// CreateStream creates a new stream and adds it to the list.
+func CreateStream(ID uint64, list map[uint64]*Stream) error {
+	list[ID] = newStream()
+	return nil
 }
 
 // GetStream returns an existing stream or error if it does not exist.
