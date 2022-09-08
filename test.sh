@@ -10,14 +10,15 @@ ENVIRONMENT=TEST \
 GIN_MODE=release \
 POSTGRES_HOST=localhost \
 POSTGRES_USER=$POSTGRES_USER \
-POSTGRES_PASSWORD=$POSTGRES_PASSWORD  \
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
 POSTGRES_PORT=$POSTGRES_PORT \
 POSTGRES_DB=$POSTGRES_DB \
 go test -failfast \
 -race \
 -coverprofile=coverage.txt \
 -covermode=atomic \
--v github.com/Brawdunoir/dionysos-server/"$1"
+-coverpkg ./... ./... \
+-v
 
 # Stop the DB
 docker-compose -f docker-compose_testing.yaml down >/dev/null 2>&1

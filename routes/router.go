@@ -80,11 +80,13 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 				roomRouter.PATCH("/:id", invalidateCacheURI("rooms"), UpdateRoom)
 				roomRouter.PATCH("/:id/connect", invalidateCacheURI("rooms"), ConnectUserToRoom)
 				roomRouter.PATCH("/:id/disconnect", invalidateCacheURI("rooms"), DisconnectUserFromRoom)
+				roomRouter.PATCH("/:id/kick/:userid", invalidateCacheURI("rooms"), KickUserFromRoom)
 			} else {
 				roomRouter.GET("/:id", GetRoom)
 				roomRouter.PATCH("/:id", UpdateRoom)
 				roomRouter.PATCH("/:id/connect", ConnectUserToRoom)
 				roomRouter.PATCH("/:id/disconnect", DisconnectUserFromRoom)
+				roomRouter.PATCH("/:id/kick/:userid", KickUserFromRoom)
 			}
 		}
 	}

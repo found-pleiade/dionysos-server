@@ -208,7 +208,7 @@ func TestRoomScenarioA(t *testing.T) {
 		t.Error(err)
 	}
 
-	// Create the user that will be used to pursue the tests.
+	// Create the users that will be used to pursue the tests.
 	idA, headersA, err := utils.CreateTestUser(models.User{Name: "userA"})
 	if err != nil {
 		t.Error(err)
@@ -248,6 +248,56 @@ func TestRoomScenarioA(t *testing.T) {
 			{Name: "Assert A has disconnected", Request: utils.Request{Method: http.MethodGet, Headers: headersA}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenB},
 			{Name: "B disconnects", Request: utils.Request{Target: targetDisconnect, Method: http.MethodPatch, Headers: headersB}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
 			{Name: "Room should be deleted", Request: utils.Request{Method: http.MethodGet, Headers: headersA}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
+		},
+	}
+	test.Run(t)
+}
+
+// TestRoomScenarioB tests the KickUserFromRoom function with the following scenario:
+// - Standard tests.
+// — 2 users (A, B) join the room, A is the owner.
+// - B tries to kick A, it is refused.
+// - A tries to kick B, it is accepted.
+// - A tries to kick himself, it is refused.
+func TestRoomScenarioB(t *testing.T) {
+	err := database.MigrateDB(database.DB, true)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Create the users that will be used to pursue the tests.
+	idA, headersA, err := utils.CreateTestUser(models.User{Name: "userA"})
+	if err != nil {
+		t.Error(err)
+	}
+	idB, headersB, err := utils.CreateTestUser(models.User{Name: "userB"})
+	if err != nil {
+		t.Error(err)
+	}
+
+	name := `{"name":"test"`
+	roomWhenA := fmt.Sprintf(`%s,"ownerID":%s,"users":\[{"ID":%s,"name":"userA"}\]}`, name, idA, idA)
+	roomWhenAB := fmt.Sprintf(`%s,"ownerID":%s,"users":\[{"ID":%s,"name":"userA"},{"ID":%s,"name":"userB"}\]}`, name, idA, idA, idB)
+
+	targetKick := "/kick/"
+
+	method := http.MethodPatch
+	test := utils.TestRUD{
+		CreateRequest:        roomCreateRequest,
+		CreateRequestHeaders: headersA,
+		CreateResponse:       CreateResponseRoom{},
+		SubTests: []utils.SubTest{
+			{Name: "Invalid room ID", Request: utils.Request{Method: method, Headers: headersA, Target: "abc" + targetKick + idA}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
+			{Name: "Invalid user ID", Request: utils.Request{Method: method, Headers: headersA, Target: targetKick + "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid user ID"}`},
+			{Name: "Room not found", Request: utils.Request{Method: method, Headers: headersA, Target: "987654321" + targetKick + idA}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
+			{Name: "User not found", Request: utils.Request{Method: method, Headers: headersA, Target: targetKick + "987654321"}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"User not found"}`},
+			{Name: "User not in room", Request: utils.Request{Method: method, Headers: headersA, Target: targetKick + idB}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"User not in room"}`},
+			{Name: "B joins", Request: utils.Request{Target: "/connect", Method: method, Headers: headersB}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "B tries to kick A", Request: utils.Request{Target: targetKick + idA, Method: method, Headers: headersB}, ResponseCode: http.StatusUnauthorized, ResponseBodyRegex: `{"error":"User not authorized"}`},
+			{Name: "Assert A hasn't been kicked", Request: utils.Request{Method: http.MethodGet, Headers: headersB}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenAB},
+			{Name: "A, angry, kicks B", Request: utils.Request{Target: targetKick + idB, Method: method, Headers: headersA}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
+			{Name: "Assert B has been kicked", Request: utils.Request{Method: http.MethodGet, Headers: headersA}, ResponseCode: http.StatusOK, ResponseBodyRegex: roomWhenA},
+			{Name: "A, regretting his action, tries to kick himself", Request: utils.Request{Target: targetKick + idA, Method: method, Headers: headersA}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Cannot kick owner from room"}`},
 		},
 	}
 	test.Run(t)

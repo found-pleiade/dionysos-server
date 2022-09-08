@@ -76,9 +76,7 @@ The API uses port 8080. A pgAdmin instance runs on port 8081. Check `.env` to se
 ### Run tests
 We have a script that runs a postgresSQL database and run `go test` automatically so you can run:
 
-`./test.sh <package>`
-
-For example: `./test.sh routes`
+`./test.sh`
 
 ## Documentation
-WIP #59
+See the API documentation at <https://api.dionysos.live/doc/index.html>.
