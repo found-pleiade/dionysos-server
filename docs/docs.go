@@ -128,7 +128,13 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Invalid user in auth method",
+                        "description": "Room not found or invalid user in auth method",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -307,6 +313,50 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{id}/stream": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "This endpoint is used to subscribe to a SSE stream for a given room.\nThe stream will send an event when a room is updated.\nA room is updated when a user connects or disconnects from it, or when we have a owner change, and so on.",
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "Rooms",
+                    "SSE"
+                ],
+                "summary": "SSE stream of a room for any updates.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Room ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Send \\\"RoomUpdate\\\" event each time room is updated. Send 200 when stream is closed"
+                    },
+                    "401": {
+                        "description": "User not authorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Room not found or invalid user in auth method",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -532,7 +582,7 @@ const docTemplate = `{
                 "tags": [
                     "Misc"
                 ],
-                "summary": "Get the api version",
+                "summary": "Get the api version.",
                 "responses": {
                     "200": {
                         "description": "Version as x.x.x",
@@ -541,7 +591,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Version has not been set correctly in server side",
+                        "description": "Version has not been set correctly on the server side",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -648,7 +698,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "Dionysos",
-	Description:      "API instance for dionysos client application.",
+	Description:      "API instance for the Dionysos client application.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

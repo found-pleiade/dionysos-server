@@ -291,7 +291,19 @@ func DisconnectUserFromRoom(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-// StreamRoom WIP.
+// StreamRoom godoc
+// @Summary      SSE stream of a room for any updates.
+// @Description  This endpoint is used to subscribe to a SSE stream for a given room.
+// @Description	 The stream will send an event when a room is updated.
+// @Description  A room is updated when a user connects or disconnects from it, or when we have a owner change, and so on.
+// @Tags         Rooms,SSE
+// @Security     BasicAuth
+// @Param        id path int true "Room ID"
+// @Produce      text/event-stream
+// @Success      200 "Send \"RoomUpdate\" event each time room is updated. Send 200 when stream is closed"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "Room not found or invalid user in auth method"
+// @Router       /rooms/{id}/stream [get]
 func StreamRoom(c *gin.Context) {
 	var stream Stream
 	room, err := routes.ExtractRoomFromContext(c)
