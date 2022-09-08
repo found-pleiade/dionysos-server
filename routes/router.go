@@ -32,8 +32,11 @@ var db *gorm.DB = database.DB
 
 // SetupRouter sets up the router
 func SetupRouter(router *gin.Engine) *gin.Engine {
-	router.Use(options)
-	router.Use(gin.Recovery())
+	router.Use(
+		gin.LoggerWithWriter(gin.DefaultWriter, "/healthz"),
+		gin.Recovery(),
+		options(),
+	)
 
 	// Connect to Redis.
 	redisURL, err := redis.ParseURL(variables.RedisHost)
@@ -127,16 +130,18 @@ func authentication(c *gin.Context) {
 }
 
 // Middleware for CORS requests.
-func options(c *gin.Context) {
-	c.Header("Allow", "GET,POST,PATCH,DELETE,OPTIONS")
-	c.Header("Access-Control-Allow-Origin", "*")
-	c.Header("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS")
-	c.Header("Access-Control-Allow-Headers", "X-Requested-With, Authorization, Origin, Content-Type, Accept")
-	c.Header("Content-Type", "application/json,text/event-stream")
-	if c.Request.Method != "OPTIONS" {
-		c.Next()
-	} else {
-		c.AbortWithStatus(http.StatusOK)
+func options() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Allow", "GET,POST,PATCH,DELETE,OPTIONS")
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "X-Requested-With, Authorization, Origin, Content-Type, Accept")
+		c.Header("Content-Type", "application/json,text/event-stream")
+		if c.Request.Method != "OPTIONS" {
+			c.Next()
+		} else {
+			c.AbortWithStatus(http.StatusOK)
+		}
 	}
 }
 
