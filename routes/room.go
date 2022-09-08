@@ -329,7 +329,12 @@ func StreamRoom(c *gin.Context) {
 	}
 
 	_ = stream.AddSub(user.ID)
-	defer stream.DelSub(user.ID)
+	defer func() {
+		err := stream.DelSub(user.ID)
+		if err != nil {
+			log.Printf("Failed to delete sub: %v", err)
+		}
+	}()
 
 	c.Stream(func(w io.Writer) bool {
 		if msg, ok := <-stream.ClientChan[user.ID]; ok {
