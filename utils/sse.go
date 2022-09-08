@@ -8,14 +8,20 @@ import (
 
 // Stream got a list of connected users and a channel per user to broadcast events.
 type Stream struct {
-	Users      map[uint64]bool
+	// Users is a map of users subscribed to the stream.
+	// The key is the user ID and the value is a boolean indicating if the user is subscribed or not.
+	Users map[uint64]bool
+
+	// ClientChan is a map of channels to send messages to clients.
 	ClientChan ClientChan
 }
 
 // Message represents a SSE type message.
 type Message struct {
+	// Event is the event type.
 	Event string
-	Data  any
+	// Data is the data to send.
+	Data any
 }
 
 // New event messages are broadcast to all registered client connection channels.
