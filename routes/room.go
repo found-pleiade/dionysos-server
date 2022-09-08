@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
@@ -249,12 +250,6 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	if !slices.Contains(room.Users, user) {
-		log.Printf("User not connected to room: %v", err)
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("User not in room"))
-		return
-	}
-
 	// Remove user from the connected users list of the room
 	err = room.RemoveUser(ctx, db, &user)
 	if err != nil {
@@ -352,16 +347,15 @@ func StreamRoom(c *gin.Context) {
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
 // @Router       /rooms/{id}/kick/{userid} [patch]
 func KickUserFromRoom(c *gin.Context) {
-	var patchedRoom models.Room
 	var user models.User
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	roomID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
-		log.Printf("Failed to convert room ID: %v", err)
+		log.Printf("Failed to extract room from context: %v", err)
+		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
 		return
 	}
 
@@ -372,13 +366,6 @@ func KickUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	err = patchedRoom.GetRoom(ctx, db, roomID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
-		log.Printf("Failed to find document: %v", err)
-		return
-	}
-
 	err = db.WithContext(ctx).First(&user, userID).Error
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -386,38 +373,25 @@ func KickUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	if !slices.Contains(patchedRoom.Users, user) {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("User not in room"))
-		log.Printf("User not connected to room: %v", err)
-		return
-	}
-
 	// Check if requester is the owner of the room.
-	err = routes.AssertUser(c, patchedRoom.OwnerID)
+	err = routes.AssertUser(c, room.OwnerID)
 	if err != nil {
 		log.Printf("Error when asserting user: %v", err)
 		return
 	}
 
 	// Owner can't kick himself.
-	if patchedRoom.OwnerID == user.ID {
+	if room.OwnerID == user.ID {
 		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Cannot kick owner from room"))
 		log.Printf("Cannot kick the owner from it's room: %v", err)
 		return
 	}
 
-	// Remove user from the connected users list of the room
-	err = patchedRoom.RemoveUser(ctx, db, &user)
+	// Remove user from the connected users list of the room.
+	err = room.RemoveUser(ctx, db, &user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Failed to remove user from room"))
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Failed to remove user from room"))
 		log.Printf("Failed to remove user from room: %v", err)
-		return
-	}
-
-	err = db.WithContext(ctx).Save(&patchedRoom).Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not modified"))
-		log.Printf("Failed to modify document: %v", err)
 		return
 	}
 

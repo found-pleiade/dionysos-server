@@ -3,8 +3,10 @@ package models
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
+	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
 )
 
@@ -45,5 +47,9 @@ func (r *Room) GetRoom(ctx context.Context, db *gorm.DB, id uint64) error {
 
 // RemoveUser removes a user from a room.
 func (r *Room) RemoveUser(ctx context.Context, db *gorm.DB, user *User) error {
+	if !slices.Contains(r.Users, *user) {
+		return errors.New("User not connected to room")
+	}
+
 	return db.WithContext(ctx).Model(&r).Association("Users").Delete(user)
 }
