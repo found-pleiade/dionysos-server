@@ -329,17 +329,15 @@ func StreamRoom(c *gin.Context) {
 	}
 
 	_ = stream.AddSub(user.ID)
+	defer stream.DelSub(user.ID)
 
-	close := c.Stream(func(w io.Writer) bool {
+	c.Stream(func(w io.Writer) bool {
 		if msg, ok := <-stream.ClientChan[user.ID]; ok {
 			c.SSEvent(msg.Event, msg.Data)
 			return true
 		}
 		return false
 	})
-	if close {
-		stream.DelSub(user.ID)
-	}
 }
 
 // KickUserFromRoom godoc
