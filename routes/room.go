@@ -3,8 +3,8 @@ package routes
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -15,8 +15,11 @@ import (
 	routes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slices"
-	"gorm.io/gorm"
 )
+
+// Keep track of all SSE channels that are currently on service.
+var roomStreamsList = make(map[uint64]*utils.Stream)
+var SSEMessage = utils.Message{Event: "roomUpdate"}
 
 // CreateRoom godoc
 // @Summary      Creates a room.
@@ -70,6 +73,9 @@ func CreateRoom(c *gin.Context) {
 		return
 	}
 
+	// Create a new SSE channel for the room.
+	_ = utils.CreateStream(room.ID, roomStreamsList)
+
 	c.JSON(http.StatusCreated, routes.CreateResponse{URI: "/rooms/" + fmt.Sprint(room.ID)})
 }
 
@@ -88,19 +94,13 @@ func CreateRoom(c *gin.Context) {
 func GetRoom(c *gin.Context) {
 	var room models.Room
 
-	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
+	_, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
-		log.Printf("Failed to convert room ID: %v", err)
-	}
-
-	err = room.GetRoom(ctx, db, id)
-	if err != nil {
+		log.Printf("Failed to extract room from context: %v", err)
 		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
-		log.Printf("Failed to find document: %v", err)
 		return
 	}
 
@@ -123,15 +123,14 @@ func GetRoom(c *gin.Context) {
 // @Router       /rooms/{id} [patch]
 func UpdateRoom(c *gin.Context) {
 	var r models.RoomUpdate
-	var patchedRoom models.Room
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	id, err := strconv.Atoi(c.Param("id"))
+	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
-		log.Printf("Failed to convert room ID: %v", err)
+		log.Printf("Failed to extract room from context: %v", err)
+		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
 		return
 	}
 
@@ -142,30 +141,26 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
-	err = db.WithContext(ctx).First(&patchedRoom, id).Error
+	// Check if requester is the owner of the room
+	err = routes.AssertUser(c, room.OwnerID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
-			return
-		} else {
-			c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not updated"))
-			log.Printf("Failed to modify document: %v", err)
-			return
-		}
-	} else {
-		// Check if requester is the owner of the room
-		err := routes.AssertUser(c, patchedRoom.OwnerID)
-		if err != nil {
-			log.Printf("Error when asserting user: %v", err)
-			return
-		}
+		log.Printf("Error when asserting user: %v", err)
+		return
 
-		err = db.WithContext(ctx).Model(&patchedRoom).Updates(r.ToRoom()).Error
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not modified"))
-			log.Printf("Failed to modify document: %v", err)
-			return
-		}
+	}
+
+	err = db.WithContext(ctx).Model(&room).Updates(r.ToRoom()).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not modified"))
+		log.Printf("Failed to modify document: %v", err)
+		return
+	}
+
+	stream, err := utils.GetStream(room.ID, roomStreamsList)
+	if err != nil {
+		log.Printf("Failed to get stream: %v", err)
+	} else {
+		stream.Distribute(SSEMessage)
 	}
 
 	c.JSON(http.StatusNoContent, nil)
@@ -185,9 +180,6 @@ func UpdateRoom(c *gin.Context) {
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
 // @Router       /rooms/{id}/connect [patch]
 func ConnectUserToRoom(c *gin.Context) {
-	var user models.User
-	var room models.Room
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
@@ -198,16 +190,9 @@ func ConnectUserToRoom(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
-		log.Printf("Failed to convert room ID: %v", err)
-		return
-	}
-
-	err = room.GetRoom(ctx, db, id)
-	if err != nil {
-		log.Printf("Failed to find document: %v", err)
+		log.Printf("Failed to extract room from context: %v", err)
 		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
 		return
 	}
@@ -228,6 +213,13 @@ func ConnectUserToRoom(c *gin.Context) {
 		return
 	}
 
+	stream, err := utils.GetStream(room.ID, roomStreamsList)
+	if err != nil {
+		log.Printf("Failed to get stream: %v", err)
+	} else {
+		stream.Distribute(SSEMessage)
+	}
+
 	c.JSON(http.StatusNoContent, nil)
 }
 
@@ -244,9 +236,6 @@ func ConnectUserToRoom(c *gin.Context) {
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
 // @Router       /rooms/{id}/disconnect [patch]
 func DisconnectUserFromRoom(c *gin.Context) {
-	var user models.User
-	var room models.Room
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
@@ -257,23 +246,10 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		log.Printf("Failed to convert room ID: %v", err)
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
-		return
-	}
-
-	err = room.GetRoom(ctx, db, id)
-	if err != nil {
-		log.Printf("Failed to find document: %v", err)
+		log.Printf("Failed to extract room from context: %v", err)
 		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
-		return
-	}
-
-	if !slices.Contains(room.Users, user) {
-		log.Printf("User not connected to room: %v", err)
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("User not in room"))
 		return
 	}
 
@@ -307,7 +283,66 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
+	stream, err := utils.GetStream(room.ID, roomStreamsList)
+	if err != nil {
+		log.Printf("Failed to get stream: %v", err)
+	} else {
+		stream.Distribute(SSEMessage)
+	}
+
 	c.JSON(http.StatusNoContent, nil)
+}
+
+// StreamRoom godoc
+// @Summary      SSE stream of a room for any updates.
+// @Description  This endpoint is used to subscribe to a SSE stream for a given room.
+// @Description	 The stream will send an event when a room is updated.
+// @Description  A room is updated when a user connects or disconnects from it, or when we have a owner change, and so on.
+// @Tags         Rooms,SSE
+// @Security     BasicAuth
+// @Param        id path int true "Room ID"
+// @Produce      text/event-stream
+// @Success      200 "Send \"RoomUpdate\" event each time room is updated. Send 200 when stream is closed"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "Room not found or invalid user in auth method"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /rooms/{id}/stream [get]
+func StreamRoom(c *gin.Context) {
+	room, err := routes.ExtractRoomFromContext(c)
+	if err != nil {
+		log.Printf("Failed to extract room from context: %v", err)
+		c.AbortWithStatusJSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+	}
+
+	user, err := routes.ExtractUserFromContext(c)
+	if err != nil {
+		log.Printf("Failed to extract user from context: %v", err)
+		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("User not found"))
+		return
+	}
+
+	stream, err := utils.GetStream(room.ID, roomStreamsList)
+	if err != nil {
+		log.Printf("Failed to get stream: %v", err)
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Failed to get stream"))
+		return
+	}
+
+	_ = stream.AddSub(user.ID)
+	defer func() {
+		err := stream.DelSub(user.ID)
+		if err != nil {
+			log.Printf("Failed to delete sub: %v", err)
+		}
+	}()
+
+	c.Stream(func(w io.Writer) bool {
+		if msg, ok := <-stream.ClientChan[user.ID]; ok {
+			c.SSEvent(msg.Event, msg.Data)
+			return true
+		}
+		return false
+	})
 }
 
 // KickUserFromRoom godoc
@@ -324,16 +359,15 @@ func DisconnectUserFromRoom(c *gin.Context) {
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
 // @Router       /rooms/{id}/kick/{userid} [patch]
 func KickUserFromRoom(c *gin.Context) {
-	var patchedRoom models.Room
 	var user models.User
 
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	roomID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid room ID"))
-		log.Printf("Failed to convert room ID: %v", err)
+		log.Printf("Failed to extract room from context: %v", err)
+		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
 		return
 	}
 
@@ -344,13 +378,6 @@ func KickUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	err = patchedRoom.GetRoom(ctx, db, roomID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
-		log.Printf("Failed to find document: %v", err)
-		return
-	}
-
 	err = db.WithContext(ctx).First(&user, userID).Error
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -358,38 +385,25 @@ func KickUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	if !slices.Contains(patchedRoom.Users, user) {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("User not in room"))
-		log.Printf("User not connected to room: %v", err)
-		return
-	}
-
 	// Check if requester is the owner of the room.
-	err = routes.AssertUser(c, patchedRoom.OwnerID)
+	err = routes.AssertUser(c, room.OwnerID)
 	if err != nil {
 		log.Printf("Error when asserting user: %v", err)
 		return
 	}
 
 	// Owner can't kick himself.
-	if patchedRoom.OwnerID == user.ID {
+	if room.OwnerID == user.ID {
 		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Cannot kick owner from room"))
 		log.Printf("Cannot kick the owner from it's room: %v", err)
 		return
 	}
 
-	// Remove user from the connected users list of the room
-	err = patchedRoom.RemoveUser(ctx, db, &user)
+	// Remove user from the connected users list of the room.
+	err = room.RemoveUser(ctx, db, &user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Failed to remove user from room"))
+		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Failed to remove user from room"))
 		log.Printf("Failed to remove user from room: %v", err)
-		return
-	}
-
-	err = db.WithContext(ctx).Save(&patchedRoom).Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not modified"))
-		log.Printf("Failed to modify document: %v", err)
 		return
 	}
 

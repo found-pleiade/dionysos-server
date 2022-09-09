@@ -10,7 +10,7 @@ import (
 )
 
 // VERSION as a constant variable
-const VERSION = "0.2.0"
+const VERSION = "0.3.0"
 
 // @title           Dionysos
 // @description     API instance for the Dionysos client application.
@@ -28,7 +28,7 @@ func main() {
 	docs.SwaggerInfo.Version = VERSION
 	docs.SwaggerInfo.BasePath = variables.BasePath
 
-	router := routes.SetupRouter(gin.Default())
+	router := routes.SetupRouter(gin.New())
 
 	err := router.Run(":8080")
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
+	"github.com/Brawdunoir/dionysos-server/utils"
 	routes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 )
@@ -140,6 +141,17 @@ func UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("User not modified"))
 		log.Printf("Failed to modify document: %v", err)
 		return
+	}
+
+	// If the user has a room, broadcast its rename to room members.
+	roomID, err := patchedUser.GetRoomID(ctx, db)
+	if err == nil {
+		stream, err := utils.GetStream(roomID, roomStreamsList)
+		if err != nil {
+			log.Printf("Failed to get stream: %v", err)
+		} else {
+			stream.Distribute(SSEMessage)
+		}
 	}
 
 	c.JSON(http.StatusNoContent, nil)

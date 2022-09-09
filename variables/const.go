@@ -8,3 +8,4 @@ const (
 )
 
 const USER_CONTEXT_KEY = "requestAuthor"
+const ROOM_CONTEXT_KEY = "roomInRequest"
