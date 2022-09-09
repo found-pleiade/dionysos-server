@@ -18,7 +18,7 @@ import (
 )
 
 // Keep track of all SSE channels that are currently on service.
-var listStreamsRoom = make(map[uint64]*utils.Stream)
+var roomStreamsList = make(map[uint64]*utils.Stream)
 var SSEMessage = utils.Message{Event: "roomUpdate"}
 
 // CreateRoom godoc
@@ -74,7 +74,7 @@ func CreateRoom(c *gin.Context) {
 	}
 
 	// Create a new SSE channel for the room.
-	_ = utils.CreateStream(room.ID, listStreamsRoom)
+	_ = utils.CreateStream(room.ID, roomStreamsList)
 
 	c.JSON(http.StatusCreated, routes.CreateResponse{URI: "/rooms/" + fmt.Sprint(room.ID)})
 }
@@ -156,7 +156,7 @@ func UpdateRoom(c *gin.Context) {
 		return
 	}
 
-	stream, err := utils.GetStream(room.ID, listStreamsRoom)
+	stream, err := utils.GetStream(room.ID, roomStreamsList)
 	if err != nil {
 		log.Printf("Failed to get stream: %v", err)
 	} else {
@@ -213,7 +213,7 @@ func ConnectUserToRoom(c *gin.Context) {
 		return
 	}
 
-	stream, err := utils.GetStream(room.ID, listStreamsRoom)
+	stream, err := utils.GetStream(room.ID, roomStreamsList)
 	if err != nil {
 		log.Printf("Failed to get stream: %v", err)
 	} else {
@@ -283,7 +283,7 @@ func DisconnectUserFromRoom(c *gin.Context) {
 		return
 	}
 
-	stream, err := utils.GetStream(room.ID, listStreamsRoom)
+	stream, err := utils.GetStream(room.ID, roomStreamsList)
 	if err != nil {
 		log.Printf("Failed to get stream: %v", err)
 	} else {
@@ -321,7 +321,7 @@ func StreamRoom(c *gin.Context) {
 		return
 	}
 
-	stream, err := utils.GetStream(room.ID, listStreamsRoom)
+	stream, err := utils.GetStream(room.ID, roomStreamsList)
 	if err != nil {
 		log.Printf("Failed to get stream: %v", err)
 		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Failed to get stream"))

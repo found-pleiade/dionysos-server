@@ -146,7 +146,7 @@ func UpdateUser(c *gin.Context) {
 	// If the user has a room, broadcast its rename to room members.
 	roomID, err := patchedUser.GetRoomID(ctx, db)
 	if err == nil {
-		stream, err := utils.GetStream(roomID, listStreamsRoom)
+		stream, err := utils.GetStream(roomID, roomStreamsList)
 		if err != nil {
 			log.Printf("Failed to get stream: %v", err)
 		} else {
