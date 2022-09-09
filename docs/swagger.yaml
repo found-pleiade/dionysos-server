@@ -254,6 +254,45 @@ paths:
       summary: Disconnects a user from a room.
       tags:
       - Rooms
+  /rooms/{id}/kick/{userid}:
+    patch:
+      parameters:
+      - description: Room ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: userid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: User not authorized
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Room not found or invalid user in auth method
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Kicks a user from a room.
+      tags:
+      - Rooms
   /rooms/{id}/stream:
     get:
       description: |-
@@ -278,6 +317,10 @@ paths:
             $ref: '#/definitions/utils.ErrorResponse'
         "404":
           description: Room not found or invalid user in auth method
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
       security:
