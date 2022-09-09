@@ -30,7 +30,10 @@ type ClientChan map[uint64]MessageChan
 
 // CreateStream creates a new stream and adds it to the list.
 func CreateStream(ID uint64, list map[uint64]*Stream) error {
-	list[ID] = newStream()
+	list[ID] = &Stream{
+		Users:      make(map[uint64]bool),
+		ClientChan: make(ClientChan),
+	}
 	return nil
 }
 
@@ -86,12 +89,4 @@ func HeadersSSE(c *gin.Context) {
 	c.Header("Transfer-Encoding", "chunked")
 	c.Header("Access-Control-Allow-Origin", "*")
 	c.Next()
-}
-
-// newStream creates a new stream.
-func newStream() *Stream {
-	return &Stream{
-		Users:      make(map[uint64]bool),
-		ClientChan: make(ClientChan),
-	}
 }
