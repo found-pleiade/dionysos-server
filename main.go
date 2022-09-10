@@ -5,6 +5,7 @@ import (
 
 	"github.com/Brawdunoir/dionysos-server/docs"
 	"github.com/Brawdunoir/dionysos-server/routes"
+	"github.com/Brawdunoir/dionysos-server/utils"
 	"github.com/Brawdunoir/dionysos-server/variables"
 	"github.com/gin-gonic/gin"
 )
@@ -28,9 +29,18 @@ func main() {
 	docs.SwaggerInfo.Version = VERSION
 	docs.SwaggerInfo.BasePath = variables.BasePath
 
+	// Logger initialization.
+	err := utils.InitLogger()
+	if err != nil {
+		panic(err)
+	}
+	defer utils.Logger.Sync()
+
+	// Gin initialization.
 	router := routes.SetupRouter(gin.New())
 
-	err := router.Run(":8080")
+	// Start the server.
+	err = router.Run(":8080")
 	if err != nil {
 		panic(err)
 	}
