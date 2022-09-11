@@ -13,12 +13,13 @@ import (
 
 	"github.com/Brawdunoir/dionysos-server/models"
 	"github.com/Brawdunoir/dionysos-server/routes"
-	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
+	"github.com/Brawdunoir/dionysos-server/utils"
+	utilsRoutes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 	"github.com/goccy/go-json"
 )
 
-var router = routes.SetupRouter(gin.New())
+var router *gin.Engine
 
 // ITest interface to run tests.
 type ITest interface {
@@ -65,7 +66,7 @@ type Header struct {
 
 // CreateTestUser creates a new user for tests and returns the authorization header associated to the user.
 func CreateTestUser(user models.User) (string, []Header, error) {
-	var c utils.CreateResponse
+	var c utilsRoutes.CreateResponse
 
 	body, err := json.Marshal(user)
 	if err != nil {
@@ -94,7 +95,10 @@ func GetBasicAuthHeader(id, password string) []Header {
 }
 
 // disableLogs to remove logs from default logger during tests.
-func disableLogs() {
+func SetupTestEnvironment() {
+	utils.InitAPI()
+	router = routes.SetupRouter(gin.New())
+
 	log.SetFlags(0)
 	log.SetOutput(ioutil.Discard)
 }

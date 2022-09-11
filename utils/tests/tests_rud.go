@@ -25,8 +25,6 @@ type TestRUD struct {
 
 // Runs a series of tests for the Get/Update/Delete type endpoint.
 func (test TestRUD) Run(t *testing.T) {
-	disableLogs()
-
 	w, err := executeRequest(test.CreateRequest.Method, test.CreateRequest.Target, test.CreateRequest.Body, test.CreateRequestHeaders)
 	if err != nil {
 		t.Error(err)

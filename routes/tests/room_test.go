@@ -30,7 +30,7 @@ var roomCreateRequest = utils.Request{Method: http.MethodPost, Target: roomURL, 
 
 // TestCreateRoom tests the CreateRoom function.
 func TestCreateRoom(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -65,7 +65,7 @@ func TestCreateRoom(t *testing.T) {
 
 // TestGetRoom tests the GetRoom function.
 func TestGetRoom(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -94,7 +94,7 @@ func TestGetRoom(t *testing.T) {
 
 // TestUpdateRoom tests the UpdateRoom function.
 func TestUpdateRoom(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -137,7 +137,7 @@ func TestUpdateRoom(t *testing.T) {
 
 // TestConnectRoom tests the ConnectUserToRoom function.
 func TestConnectRoom(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -169,7 +169,7 @@ func TestConnectRoom(t *testing.T) {
 
 // TestDisconnectRoom tests the DisconnectUserFromRoom function.
 func TestDisconnectRoom(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -203,7 +203,7 @@ func TestDisconnectRoom(t *testing.T) {
 // — A disconnects, the ownership is transferred to B.
 // — B disconnects, the room is deleted.
 func TestRoomScenarioA(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -260,7 +260,7 @@ func TestRoomScenarioA(t *testing.T) {
 // - A tries to kick B, it is accepted.
 // - A tries to kick himself, it is refused.
 func TestRoomScenarioB(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}

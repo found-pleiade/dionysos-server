@@ -2,7 +2,7 @@ package database
 
 import (
 	"github.com/Brawdunoir/dionysos-server/models"
-	"github.com/Brawdunoir/dionysos-server/utils"
+	l "github.com/Brawdunoir/dionysos-server/utils/logger"
 	c "github.com/Brawdunoir/dionysos-server/variables"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -18,12 +18,12 @@ func Init() {
 
 	db, err := gorm.Open(postgres.Open(createDSN()), createConfig())
 	if err != nil {
-		utils.Logger.Fatal("Failed to connect to the database: ", err)
+		l.Logger.Fatal("Failed to connect to the database: ", err)
 	}
 
 	err = MigrateDB(db, resetDB)
 	if err != nil {
-		utils.Logger.Fatal("Failed to migrate database: ", err)
+		l.Logger.Fatal("Failed to migrate database: ", err)
 	}
 	database = db
 }
@@ -48,7 +48,7 @@ func createConfig() *gorm.Config {
 	case c.ENVIRONMENT_PRODUCTION:
 		return &gorm.Config{Logger: logger.Default.LogMode(logger.Error)}
 	default:
-		utils.Logger.Fatal("Unknown environment: " + c.Environment)
+		l.Logger.Fatal("Unknown environment: " + c.Environment)
 		return nil
 	}
 }

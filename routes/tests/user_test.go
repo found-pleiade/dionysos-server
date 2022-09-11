@@ -34,7 +34,7 @@ var userCreateRequest = utils.Request{Method: http.MethodPost, Target: userURL, 
 
 // TestCreateUser tests the CreateUser function.
 func TestCreateUser(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -62,7 +62,7 @@ func TestCreateUser(t *testing.T) {
 
 // TestGetUser tests the GetUser function.
 func TestGetUser(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -82,7 +82,7 @@ func TestGetUser(t *testing.T) {
 
 // TestUpdateUser tests the UpdateUser function.
 func TestUpdateUser(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -116,7 +116,7 @@ func TestUpdateUser(t *testing.T) {
 
 // TestDeleteUser tests the DeleteUser function.
 func TestDeleteUser(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
