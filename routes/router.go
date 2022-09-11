@@ -19,6 +19,7 @@ import (
 	"github.com/chenyahui/gin-cache/persist"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 
 	swaggerfiles "github.com/swaggo/files"
@@ -28,10 +29,16 @@ import (
 var redisStore *persist.RedisStore
 
 // Database pointer that will be used in the routes.
-var db *gorm.DB = database.DB
+var db *gorm.DB
 
 // SetupRouter sets up the router
 func SetupRouter(router *gin.Engine) *gin.Engine {
+	// Get the database connection.
+	db = database.GetDB()
+	if db == nil {
+		utils.Logger.Fatal("Failed to connect to database")
+	}
+
 	router.Use(
 		gin.LoggerWithWriter(gin.DefaultWriter, "/healthz"),
 		gin.Recovery(),

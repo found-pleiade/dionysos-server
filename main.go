@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/Brawdunoir/dionysos-server/database"
 	"github.com/Brawdunoir/dionysos-server/docs"
 	"github.com/Brawdunoir/dionysos-server/routes"
 	"github.com/Brawdunoir/dionysos-server/utils"
@@ -23,24 +24,29 @@ const VERSION = "0.3.0"
 // @license.name  GNU General Public License v3.0
 // @license.url   https://www.gnu.org/licenses/gpl-3.0.html
 func main() {
-	os.Setenv("VERSION", VERSION)
-
-	// Set dynamic documentation information.
-	docs.SwaggerInfo.Version = VERSION
-	docs.SwaggerInfo.BasePath = variables.BasePath
-
+	// ! Order of these calls matters.
+	// Load variables from environment.
+	variables.LoadVariables()
 	// Logger initialization.
 	err := utils.InitLogger()
 	if err != nil {
 		panic(err)
 	}
 	defer utils.Logger.Sync()
-
+	// DB initialization.
+	database.Init()
 	// Gin initialization.
 	router := routes.SetupRouter(gin.New())
 
+	// Set VERSION in environment.
+	os.Setenv("VERSION", VERSION)
+	// Set dynamic documentation information.
+	docs.SwaggerInfo.Version = VERSION
+	docs.SwaggerInfo.BasePath = variables.BasePath
+
 	// Start the server.
-	err = router.Run(":8080")
+	utils.Logger.Infof("Starting server on port %s", variables.Port)
+	err = router.Run(":" + variables.Port)
 	if err != nil {
 		panic(err)
 	}

@@ -38,9 +38,9 @@ func createConfig() (zapcore.EncoderConfig, zapcore.Level) {
 	case c.ENVIRONMENT_DEVELOPMENT:
 		return zap.NewDevelopmentEncoderConfig(), zapcore.DebugLevel
 	case c.ENVIRONMENT_PRODUCTION:
+		return zap.NewProductionEncoderConfig(), zapcore.WarnLevel
 	default:
-		log.Println("ENVIRONMENT variable not valid, using production config")
-		log.Println("Possible values are : " + c.ENVIRONMENT_TESTING + ", " + c.ENVIRONMENT_DEVELOPMENT + ", " + c.ENVIRONMENT_PRODUCTION)
+		log.Fatal("Unknown environment: " + c.Environment)
+		return zapcore.EncoderConfig{}, 0
 	}
-	return zap.NewProductionEncoderConfig(), zapcore.WarnLevel
 }
