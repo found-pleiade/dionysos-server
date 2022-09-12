@@ -27,7 +27,7 @@ func InitLogger() error {
 		zapcore.NewCore(fileEncoder, zapcore.AddSync(logFile), defaultLogLevel),
 		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), defaultLogLevel),
 	)
-	Logger = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel)).Sugar()
+	Logger = zap.New(core, zap.AddCaller()).Sugar()
 	return nil
 }
 
