@@ -52,6 +52,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			gin.LoggerWithWriter(gin.DefaultWriter, "/healthz"),
 			gin.Recovery(),
 			middlewares.Options(),
+			middlewares.ErrorHandler(l.Logger),
 		)
 		// Public routes.
 		r.GET("/healthz", Healthz)
@@ -90,6 +91,5 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 		}
 	}
 
-	router.Use(middlewares.ErrorHandler(l.Logger))
 	return router
 }
