@@ -4,8 +4,6 @@ package utils
 import (
 	"bytes"
 	"encoding/base64"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"path"
@@ -98,9 +96,6 @@ func GetBasicAuthHeader(id, password string) []Header {
 func SetupTestEnvironment() {
 	utils.InitAPI()
 	router = routes.SetupRouter(gin.New())
-
-	log.SetFlags(0)
-	log.SetOutput(ioutil.Discard)
 }
 
 // executeTest executes a single request and returns the response.
