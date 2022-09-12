@@ -14,7 +14,7 @@ func ErrorHandler(logger *zap.SugaredLogger) gin.HandlerFunc {
 		if len(c.Errors) > 0 {
 
 			for _, ginErr := range c.Errors {
-				logger.Error(ginErr.Error(), ginErr.Meta)
+				logger.With("Context", ginErr.Meta).Error(ginErr.Error())
 			}
 
 			// status -1 doesn't overwrite existing status code
