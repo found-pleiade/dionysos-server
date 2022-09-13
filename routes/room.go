@@ -194,7 +194,6 @@ func ConnectUserToRoom(c *gin.Context) {
 
 	// Assert user is not already in the room.
 	if slices.Contains(room.Users, user) {
-		c.Error(err).SetMeta("ConnectUserToRoom.Contains")
 		c.AbortWithError(http.StatusConflict, e.UserAlreadyInRoom{}).SetMeta("ConnectUserToRoom.Contains")
 		return
 	}

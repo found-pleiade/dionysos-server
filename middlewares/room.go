@@ -27,7 +27,7 @@ func RetrieveRoom(logger *zap.SugaredLogger, db *gorm.DB) gin.HandlerFunc {
 		err = room.GetRoom(c, db, id)
 		if err != nil {
 			c.Error(err).SetMeta("RetrieveRoom.GetRoom")
-			c.AbortWithError(http.StatusInternalServerError, e.RoomNotFound{}).SetMeta("RetrieveRoom.GetRoom")
+			c.AbortWithError(http.StatusNotFound, e.RoomNotFound{}).SetMeta("RetrieveRoom.GetRoom")
 			return
 		}
 		c.Set(variables.ROOM_CONTEXT_KEY, room)
