@@ -18,6 +18,7 @@ func InitAPI() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	//nolint:errcheck
 	defer l.Logger.Sync()
 	l.Logger.Debug("Logger initialized.")
 
