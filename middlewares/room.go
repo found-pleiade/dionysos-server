@@ -1,12 +1,11 @@
 package middlewares
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/Brawdunoir/dionysos-server/models"
-	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
+	e "github.com/Brawdunoir/dionysos-server/utils/errors"
 	"github.com/Brawdunoir/dionysos-server/variables"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -20,15 +19,15 @@ func RetrieveRoom(logger *zap.SugaredLogger, db *gorm.DB) gin.HandlerFunc {
 
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
-			log.Printf("Failed to convert room ID: %v", err)
-			c.AbortWithStatusJSON(http.StatusBadRequest, utils.CreateErrorResponse("Invalid room ID"))
+			c.Error(err).SetMeta("RetrieveRoom.ParseUint")
+			c.AbortWithError(http.StatusBadRequest, e.InvalidID{}).SetMeta("RetrieveRoom.ParseUint")
 			return
 		}
 
 		err = room.GetRoom(c, db, id)
 		if err != nil {
-			log.Printf("Failed to find document: %v", err)
-			c.AbortWithStatusJSON(http.StatusNotFound, utils.CreateErrorResponse("Room not found"))
+			c.Error(err).SetMeta("RetrieveRoom.GetRoom")
+			c.AbortWithError(http.StatusInternalServerError, e.RoomNotFound{}).SetMeta("RetrieveRoom.GetRoom")
 			return
 		}
 		c.Set(variables.ROOM_CONTEXT_KEY, room)

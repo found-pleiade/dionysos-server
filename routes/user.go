@@ -35,8 +35,8 @@ func CreateUser(c *gin.Context) {
 	defer cancelCtx()
 
 	if err := c.ShouldBindJSON(&u); err != nil {
-		c.Error(err).SetMeta("CreateUser.BindJSON")
-		c.AbortWithError(http.StatusBadRequest, e.FailJSONBind{}).SetMeta("CreateUser.BindJSON")
+		c.Error(err).SetMeta("CreateUser.ShouldBindJSON")
+		c.AbortWithError(http.StatusBadRequest, e.FailJSONBind{}).SetMeta("CreateUser.ShouldBindJSON")
 		return
 	}
 
