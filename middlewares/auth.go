@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
-	utils "github.com/Brawdunoir/dionysos-server/utils/routes"
+	e "github.com/Brawdunoir/dionysos-server/utils/errors"
 	"github.com/Brawdunoir/dionysos-server/variables"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -29,8 +29,8 @@ func Authentication(db *gorm.DB, logger *zap.SugaredLogger) gin.HandlerFunc {
 			err := db.WithContext(ctx).First(&user, id).Error
 
 			if err != nil {
-				c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found during authentication"})
-				logger.Error("Failed to find user: %v", err)
+				c.Error(err).SetMeta("Authentication.First")
+				c.AbortWithError(http.StatusNotFound, e.UserNotFound{}).SetMeta("Authentication.First")
 				return
 			}
 			// Calculate SHA-256 hashes for the provided and expected passwords.
@@ -51,6 +51,6 @@ func Authentication(db *gorm.DB, logger *zap.SugaredLogger) gin.HandlerFunc {
 		// set a WWW-Authenticate header to inform the client that we expect them
 		// to use basic authentication and send a 401 Unauthorized response.
 		c.Header("WWW-Authenticate", `Basic id:password charset="UTF-8"`)
-		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.CreateErrorResponse("User not authorized"))
+		c.AbortWithError(http.StatusUnauthorized, e.UserNotAuthorized{}).SetMeta("Authentication")
 	}
 }
