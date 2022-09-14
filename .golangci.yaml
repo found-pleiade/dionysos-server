@@ -2,4 +2,4 @@ issues:
   exclude-rules:
     - linters:
         - errcheck
-      text: "Error return value of `(*github.com/gin-gonic/gin.Error).SetMeta` is not checked"
+      text: "Error return value of `\\(\\*github.com/gin-gonic/gin\\.Error\\)\\.SetMeta` is not checked"
