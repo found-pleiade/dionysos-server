@@ -1,0 +1,3 @@
+issues:
+  exclude:
+    - "Error return value of `(*github.com/gin-gonic/gin.Error).SetMeta` is not checked (errcheck)"
