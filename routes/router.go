@@ -36,7 +36,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 	if variables.RedisHost != "" {
 		redisURL, err := redis.ParseURL(variables.RedisHost)
 		if err != nil {
-			l.Logger.Error("Cannot connect to redis", err)
+			l.Logger.Fatal("Cannot connect to redis", err)
 		} else {
 			cacheStore = persist.NewRedisStore(redis.NewClient(redisURL))
 		}
