@@ -6,7 +6,7 @@ networks:
 services:
   api:
     container_name: api
-    image: cosmtrek/air
+    image: docker.io/cosmtrek/air
     working_dir: /dionysos
     ports:
       - 8080:8080
@@ -27,7 +27,7 @@ services:
 
   postgres:
     container_name: ${POSTGRES_HOST}
-    image: postgres:14
+    image: docker.io/postgres:14
     command: -p ${POSTGRES_PORT}
     volumes:
       - /tmp/postgres:/var/lib/postgresql/data
@@ -39,7 +39,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
   pgadmin:
     container_name: pgadmin
-    image: dpage/pgadmin4
+    image: docker.io/dpage/pgadmin4
     ports:
       - 8081:80
     networks:
