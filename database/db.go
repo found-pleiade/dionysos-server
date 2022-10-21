@@ -1,59 +1,41 @@
 package database
 
 import (
-	"log"
-	"os"
-
 	"github.com/Brawdunoir/dionysos-server/models"
+	l "github.com/Brawdunoir/dionysos-server/utils/logger"
 	c "github.com/Brawdunoir/dionysos-server/variables"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-var DB *gorm.DB = setupDatabase()
+var database *gorm.DB
 
-// setupDatabase returns a setuped database instance.
-func setupDatabase() *gorm.DB {
+// Init initializes the database connection and migrate models within the database.
+// It also resets the database in case of testing or development environment.
+func Init() {
 	resetDB := c.Environment == c.ENVIRONMENT_DEVELOPMENT || c.Environment == c.ENVIRONMENT_TESTING
 
 	db, err := gorm.Open(postgres.Open(createDSN()), createConfig())
 	if err != nil {
-		log.Fatal("Failed to connect to the database: ", err)
+		l.Logger.Fatal("Failed to connect to the database: ", err)
 	}
 
 	err = MigrateDB(db, resetDB)
 	if err != nil {
-		log.Fatal("Failed to migrate database: ", err)
+		l.Logger.Fatal("Failed to migrate database: ", err)
 	}
+	database = db
+}
 
-	return db
+// GetDB returns the database connection.
+func GetDB() *gorm.DB {
+	return database
 }
 
 // createDSN creates a DSN string from the environment variables to connect to the database.
 func createDSN() string {
-	username, found := os.LookupEnv("POSTGRES_USER")
-	if !found {
-		log.Fatal("POSTGRES_USER environment variable not found")
-	}
-	password, found := os.LookupEnv("POSTGRES_PASSWORD")
-	if !found {
-		log.Fatal("POSTGRES_PASSWORD environment variable not found")
-	}
-	host, found := os.LookupEnv("POSTGRES_HOST")
-	if !found {
-		log.Fatal("POSTGRES_HOST environment variable not found")
-	}
-	port, found := os.LookupEnv("POSTGRES_PORT")
-	if !found {
-		log.Fatal("POSTGRES_PORT environment variable not found")
-	}
-	dbname, found := os.LookupEnv("POSTGRES_DB")
-	if !found {
-		log.Fatal("POSTGRES_DB environment variable not found")
-	}
-
-	return "host=" + host + " port=" + port + " user=" + username + " password=" + password + " dbname=" + dbname
+	return "host=" + c.PostgresHost + " port=" + c.PostgresPort + " user=" + c.PostgresUser + " password=" + c.PostgresPassword + " dbname=" + c.PostgresDB
 }
 
 // createConfig creates a Gorm config depending on the environment variables.
@@ -66,9 +48,8 @@ func createConfig() *gorm.Config {
 	case c.ENVIRONMENT_PRODUCTION:
 		return &gorm.Config{Logger: logger.Default.LogMode(logger.Error)}
 	default:
-		log.Println("ENVIRONMENT variable not valid, using default config")
-		log.Println("Possible values are : " + c.ENVIRONMENT_TESTING + ", " + c.ENVIRONMENT_DEVELOPMENT + ", " + c.ENVIRONMENT_PRODUCTION)
-		return &gorm.Config{}
+		l.Logger.Fatal("Unknown environment: " + c.Environment)
+		return nil
 	}
 }
 

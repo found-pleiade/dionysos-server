@@ -5,13 +5,14 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/Brawdunoir/dionysos-server/models"
 	"github.com/Brawdunoir/dionysos-server/utils"
+	e "github.com/Brawdunoir/dionysos-server/utils/errors"
+	l "github.com/Brawdunoir/dionysos-server/utils/logger"
 	routes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slices"
@@ -36,20 +37,19 @@ var SSEMessage = utils.Message{Event: "roomUpdate"}
 // @Router       /rooms [post]
 func CreateRoom(c *gin.Context) {
 	var r models.RoomUpdate
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
 	if err := c.ShouldBindJSON(&r); err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse(err.Error()))
-		log.Printf("Failed to bind JSON: %v", err)
+		c.Error(err).SetMeta("CreateRoom.ShouldBindJSON")
+		c.AbortWithError(http.StatusBadRequest, e.FailJSONBind{}).SetMeta("CreateRoom.ShouldBindJSON")
 		return
 	}
 
 	user, err := routes.ExtractUserFromContext(c)
 	if err != nil {
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("User not found in context"))
-		log.Printf("Failed to extract user from context: %v", err)
+		c.Error(err).SetMeta("CreateRoom.ExtractUserFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.UserNotInContext{}).SetMeta("CreateRoom.ExtractUserFromContext")
 		return
 	}
 
@@ -57,8 +57,8 @@ func CreateRoom(c *gin.Context) {
 
 	room.ID, err = utils.UUIDGenerator.NextID()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not created"))
-		log.Printf("Failed to create document: %v", err)
+		c.Error(err).SetMeta("CreateRoom.UUIDGenerator.NextID")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotCreated{}).SetMeta("CreateRoom.UUIDGenerator.NextID")
 		return
 	}
 
@@ -66,10 +66,9 @@ func CreateRoom(c *gin.Context) {
 	room.Users = append(room.Users, user)
 
 	err = db.WithContext(ctx).Create(&room).Error
-
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not created"))
-		log.Printf("Failed to create document: %v", err)
+		c.Error(err).SetMeta("CreateRoom.Create")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotCreated{}).SetMeta("CreateRoom.Create")
 		return
 	}
 
@@ -93,14 +92,13 @@ func CreateRoom(c *gin.Context) {
 // @Router       /rooms/{id} [get]
 func GetRoom(c *gin.Context) {
 	var room models.Room
-
 	_, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
 	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		log.Printf("Failed to extract room from context: %v", err)
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+		c.Error(err).SetMeta("GetRoom.ExtractRoomFromContext")
+		c.AbortWithError(http.StatusNotFound, e.RoomNotInContext{}).SetMeta("GetRoom.ExtractRoomFromContext")
 		return
 	}
 
@@ -123,42 +121,39 @@ func GetRoom(c *gin.Context) {
 // @Router       /rooms/{id} [patch]
 func UpdateRoom(c *gin.Context) {
 	var r models.RoomUpdate
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
 	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		log.Printf("Failed to extract room from context: %v", err)
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+		c.Error(err).SetMeta("UpdateRoom.ExtractRoomFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotInContext{}).SetMeta("UpdateRoom.ExtractRoomFromContext")
 		return
 	}
 
 	// Test if data is valid
 	if err := c.ShouldBindJSON(&r); err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse(err.Error()))
-		log.Printf("Failed to bind JSON: %v", err)
+		c.Error(err).SetMeta("UpdateRoom.ShouldBindJSON")
+		c.AbortWithError(http.StatusBadRequest, e.FailJSONBind{}).SetMeta("UpdateRoom.ShouldBindJSON")
 		return
 	}
 
 	// Check if requester is the owner of the room
 	err = routes.AssertUser(c, room.OwnerID)
 	if err != nil {
-		log.Printf("Error when asserting user: %v", err)
 		return
-
 	}
 
 	err = db.WithContext(ctx).Model(&room).Updates(r.ToRoom()).Error
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not modified"))
-		log.Printf("Failed to modify document: %v", err)
+		c.Error(err).SetMeta("UpdateRoom.Updates")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotModified{}).SetMeta("UpdateRoom.Updates")
 		return
 	}
 
 	stream, err := utils.GetStream(room.ID, roomStreamsList)
 	if err != nil {
-		log.Printf("Failed to get stream: %v", err)
+		l.Logger.Warnf("Failed to get stream: %v", err)
 	} else {
 		stream.Distribute(SSEMessage)
 	}
@@ -185,22 +180,21 @@ func ConnectUserToRoom(c *gin.Context) {
 
 	user, err := routes.ExtractUserFromContext(c)
 	if err != nil {
-		log.Printf("Failed to extract user from context: %v", err)
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Failed to extract user from context"))
+		c.Error(err).SetMeta("ConnectUserToRoom.ExtractUserFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.UserNotInContext{}).SetMeta("ConnectUserToRoom.ExtractUserFromContext")
 		return
 	}
 
 	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		log.Printf("Failed to extract room from context: %v", err)
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+		c.Error(err).SetMeta("ConnectUserToRoom.ExtractRoomFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotInContext{}).SetMeta("ConnectUserToRoom.ExtractRoomFromContext")
 		return
 	}
 
 	// Assert user is not already in the room.
 	if slices.Contains(room.Users, user) {
-		log.Printf("User already in room")
-		c.JSON(http.StatusConflict, routes.CreateErrorResponse("User already in room"))
+		c.AbortWithError(http.StatusConflict, e.UserAlreadyInRoom{}).SetMeta("ConnectUserToRoom.Contains")
 		return
 	}
 
@@ -208,14 +202,14 @@ func ConnectUserToRoom(c *gin.Context) {
 
 	err = db.WithContext(ctx).Save(&room).Error
 	if err != nil {
-		log.Printf("Failed to modify document: %v", err)
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not modified"))
+		c.Error(err).SetMeta("ConnectUserToRoom.Save")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotModified{}).SetMeta("ConnectUserToRoom.Save")
 		return
 	}
 
 	stream, err := utils.GetStream(room.ID, roomStreamsList)
 	if err != nil {
-		log.Printf("Failed to get stream: %v", err)
+		l.Logger.Warnf("Failed to get stream: %v", err)
 	} else {
 		stream.Distribute(SSEMessage)
 	}
@@ -241,23 +235,23 @@ func DisconnectUserFromRoom(c *gin.Context) {
 
 	user, err := routes.ExtractUserFromContext(c)
 	if err != nil {
-		log.Printf("Failed to extract user from context: %v", err)
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Failed to extract user from context"))
+		c.Error(err).SetMeta("DisconnectUserFromRoom.ExtractUserFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.UserNotInContext{}).SetMeta("DisconnectUserFromRoom.ExtractUserFromContext")
 		return
 	}
 
 	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		log.Printf("Failed to extract room from context: %v", err)
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+		c.Error(err).SetMeta("DisconnectUserFromRoom.ExtractRoomFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotInContext{}).SetMeta("DisconnectUserFromRoom.ExtractRoomFromContext")
 		return
 	}
 
 	// Remove user from the connected users list of the room
 	err = room.RemoveUser(ctx, db, &user)
 	if err != nil {
-		log.Printf("Failed to remove user from room: %v", err)
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Failed to remove user from room"))
+		c.Error(err).SetMeta("DisconnectUserFromRoom.RemoveUser")
+		c.AbortWithError(http.StatusBadRequest, e.RoomNotModified{}).SetMeta("DisconnectUserFromRoom.RemoveUser")
 		return
 	}
 
@@ -265,11 +259,11 @@ func DisconnectUserFromRoom(c *gin.Context) {
 	if len(room.Users) == 0 {
 		result := db.WithContext(ctx).Delete(&room)
 		if result.Error != nil {
-			log.Printf("Failed to delete document: %v", err)
-			c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not deleted"))
+			c.Error(result.Error).SetMeta("DisconnectUserFromRoom.Delete")
+			c.AbortWithError(http.StatusInternalServerError, e.RoomNotModified{}).SetMeta("DisconnectUserFromRoom.Delete")
 			return
 		}
-		log.Printf("Room %v deleted", room.ID)
+		l.Logger.Infof("Room %v deleted", room.ID)
 		c.JSON(http.StatusNoContent, nil)
 		return
 	} else if room.OwnerID == user.ID {
@@ -278,14 +272,14 @@ func DisconnectUserFromRoom(c *gin.Context) {
 
 	err = db.WithContext(ctx).Save(&room).Error
 	if err != nil {
-		log.Printf("Failed to modify document: %v", err)
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Room not modified"))
+		c.Error(err).SetMeta("DisconnectUserFromRoom.Save")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotModified{}).SetMeta("DisconnectUserFromRoom.Save")
 		return
 	}
 
 	stream, err := utils.GetStream(room.ID, roomStreamsList)
 	if err != nil {
-		log.Printf("Failed to get stream: %v", err)
+		l.Logger.Warnf("Failed to get stream: %v", err)
 	} else {
 		stream.Distribute(SSEMessage)
 	}
@@ -310,21 +304,22 @@ func DisconnectUserFromRoom(c *gin.Context) {
 func StreamRoom(c *gin.Context) {
 	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		log.Printf("Failed to extract room from context: %v", err)
-		c.AbortWithStatusJSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+		c.Error(err).SetMeta("StreamRoom.ExtractRoomFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotInContext{}).SetMeta("StreamRoom.ExtractRoomFromContext")
+		return
 	}
 
 	user, err := routes.ExtractUserFromContext(c)
 	if err != nil {
-		log.Printf("Failed to extract user from context: %v", err)
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("User not found"))
+		c.Error(err).SetMeta("StreamRoom.ExtractUserFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.UserNotInContext{}).SetMeta("StreamRoom.ExtractUserFromContext")
 		return
 	}
 
 	stream, err := utils.GetStream(room.ID, roomStreamsList)
 	if err != nil {
-		log.Printf("Failed to get stream: %v", err)
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Failed to get stream"))
+		c.Error(err).SetMeta("StreamRoom.GetStream")
+		c.AbortWithError(http.StatusInternalServerError, e.StreamNotCreated{}).SetMeta("StreamRoom.GetStream")
 		return
 	}
 
@@ -332,7 +327,7 @@ func StreamRoom(c *gin.Context) {
 	defer func() {
 		err := stream.DelSub(user.ID)
 		if err != nil {
-			log.Printf("Failed to delete sub: %v", err)
+			l.Logger.Warnf("Failed to delete sub: %v", err)
 		}
 	}()
 
@@ -360,50 +355,48 @@ func StreamRoom(c *gin.Context) {
 // @Router       /rooms/{id}/kick/{userid} [patch]
 func KickUserFromRoom(c *gin.Context) {
 	var user models.User
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
 	room, err := routes.ExtractRoomFromContext(c)
 	if err != nil {
-		log.Printf("Failed to extract room from context: %v", err)
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("Room not found"))
+		c.Error(err).SetMeta("KickUserFromRoom.ExtractRoomFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotInContext{}).SetMeta("KickUserFromRoom.ExtractRoomFromContext")
 		return
 	}
 
 	userID, err := strconv.ParseUint(c.Param("userid"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid user ID"))
-		log.Printf("Failed to convert user ID: %v", err)
+		c.Error(err).SetMeta("KickUserFromRoom.ParseUint")
+		c.AbortWithError(http.StatusBadRequest, e.InvalidID{}).SetMeta("KickUserFromRoom.ParseUint")
 		return
 	}
 
 	err = db.WithContext(ctx).First(&user, userID).Error
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		log.Printf("Failed to find document: %v", err)
+		c.Error(err).SetMeta("KickUserFromRoom.First")
+		c.AbortWithError(http.StatusNotFound, e.UserNotFound{}).SetMeta("KickUserFromRoom.First")
 		return
 	}
 
 	// Check if requester is the owner of the room.
 	err = routes.AssertUser(c, room.OwnerID)
 	if err != nil {
-		log.Printf("Error when asserting user: %v", err)
 		return
 	}
 
 	// Owner can't kick himself.
 	if room.OwnerID == user.ID {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Cannot kick owner from room"))
-		log.Printf("Cannot kick the owner from it's room: %v", err)
+		c.Error(err).SetMeta("KickUserFromRoom.AssertUser")
+		c.AbortWithError(http.StatusBadRequest, e.OwnerCantKickHimself{}).SetMeta("KickUserFromRoom.AssertUser")
 		return
 	}
 
 	// Remove user from the connected users list of the room.
 	err = room.RemoveUser(ctx, db, &user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("Failed to remove user from room"))
-		log.Printf("Failed to remove user from room: %v", err)
+		c.Error(err).SetMeta("KickUserFromRoom.RemoveUser")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotModified{}).SetMeta("KickUserFromRoom.RemoveUser")
 		return
 	}
 

@@ -4,7 +4,6 @@ package routes
 import (
 	"context"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -12,6 +11,8 @@ import (
 
 	"github.com/Brawdunoir/dionysos-server/models"
 	"github.com/Brawdunoir/dionysos-server/utils"
+	e "github.com/Brawdunoir/dionysos-server/utils/errors"
+	l "github.com/Brawdunoir/dionysos-server/utils/logger"
 	routes "github.com/Brawdunoir/dionysos-server/utils/routes"
 	"github.com/gin-gonic/gin"
 )
@@ -30,13 +31,12 @@ import (
 func CreateUser(c *gin.Context) {
 	var u models.UserUpdate
 	rand.Seed(time.Now().UnixNano())
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
 	if err := c.ShouldBindJSON(&u); err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse(err.Error()))
-		log.Printf("Failed to bind JSON: %v", err)
+		c.Error(err).SetMeta("CreateUser.ShouldBindJSON")
+		c.AbortWithError(http.StatusBadRequest, e.FailJSONBind{}).SetMeta("CreateUser.ShouldBindJSON")
 		return
 	}
 
@@ -50,8 +50,8 @@ func CreateUser(c *gin.Context) {
 	err := db.WithContext(ctx).Create(&user).Error
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("User not created"))
-		log.Printf("Failed to create document: %v", err)
+		c.Error(err).SetMeta("CreateUser.Create")
+		c.AbortWithError(http.StatusInternalServerError, e.UserNotCreated{}).SetMeta("CreateUser.Create")
 		return
 	}
 
@@ -71,21 +71,21 @@ func CreateUser(c *gin.Context) {
 // @Router       /users/{id} [get]
 func GetUser(c *gin.Context) {
 	var user models.User
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid user ID"))
-		log.Printf("Failed to convert user ID: %v", err)
+		c.Error(err).SetMeta("GetUser.ParseUint")
+		c.AbortWithError(http.StatusBadRequest, e.InvalidID{}).SetMeta("GetUser.ParseUint")
+		return
 	}
 
 	err = db.WithContext(ctx).First(&user, id).Error
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("User not found"))
-		log.Printf("Failed to find document: %v", err)
+		c.Error(err).SetMeta("GetUser.First")
+		c.AbortWithError(http.StatusNotFound, e.UserNotFound{}).SetMeta("GetUser.First")
 		return
 	}
 
@@ -108,38 +108,39 @@ func GetUser(c *gin.Context) {
 // @Router       /users/{id} [patch]
 func UpdateUser(c *gin.Context) {
 	var u models.UserUpdate
-	patchedUser, err := routes.ExtractUserFromContext(c)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("User not found in context. Has it been set in the middleware?"))
-		log.Printf("Failed to extract user from context: %v", err)
-	}
-
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
+	patchedUser, err := routes.ExtractUserFromContext(c)
+	if err != nil {
+		c.Error(err).SetMeta("UpdateUser.ExtractUserFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.UserNotInContext{}).SetMeta("UpdateUser.ExtractUserFromContext")
+		return
+	}
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid user ID"))
-		log.Printf("Failed to convert user ID: %v", err)
+		c.Error(err).SetMeta("UpdateUser.ParseUint")
+		c.AbortWithError(http.StatusBadRequest, e.InvalidID{}).SetMeta("UpdateUser.ParseUint")
+		return
 	}
 
 	// Assert the request is coming from the right user.
 	if err := routes.AssertUser(c, id); err != nil {
-		log.Printf("Failed to assert user: %v", err)
 		return
 	}
 
 	// Test if data is valid.
 	if err := c.ShouldBindJSON(&u); err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse(err.Error()))
-		log.Printf("Failed to bind JSON: %v", err)
+		c.Error(err).SetMeta("UpdateUser.BindJSON")
+		c.AbortWithError(http.StatusBadRequest, e.FailJSONBind{}).SetMeta("UpdateUser.BindJSON")
 		return
 	}
 
 	err = db.WithContext(ctx).Model(&patchedUser).Updates(u.ToUser()).Error
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("User not modified"))
-		log.Printf("Failed to modify document: %v", err)
+		c.Error(err).SetMeta("UpdateUser.Updates")
+		c.AbortWithError(http.StatusInternalServerError, e.UserNotModified{}).SetMeta("UpdateUser.Updates")
 		return
 	}
 
@@ -148,7 +149,7 @@ func UpdateUser(c *gin.Context) {
 	if err == nil {
 		stream, err := utils.GetStream(roomID, roomStreamsList)
 		if err != nil {
-			log.Printf("Failed to get stream: %v", err)
+			l.Logger.Infof("Failed to get stream: %v", err)
 		} else {
 			stream.Distribute(SSEMessage)
 		}
@@ -174,25 +175,24 @@ func DeleteUser(c *gin.Context) {
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, routes.CreateErrorResponse("Invalid user ID"))
-		log.Printf("Failed to convert user ID: %v", err)
+		c.Error(err).SetMeta("DeleteUser.ParseUint")
+		c.AbortWithError(http.StatusBadRequest, e.InvalidID{}).SetMeta("DeleteUser.ParseUint")
 	}
 
 	// Assert the request is coming from the right user.
 	if err := routes.AssertUser(c, id); err != nil {
-		log.Printf("Failed to assert user: %v", err)
 		return
 	}
 
 	result := db.WithContext(ctx).Delete(&models.User{}, id)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, routes.CreateErrorResponse("User not deleted"))
-		log.Printf("Failed to delete document: %v", result.Error)
+		c.Error(result.Error).SetMeta("DeleteUser.Delete.NotDeleted")
+		c.AbortWithError(http.StatusInternalServerError, e.UserNotDeleted{}).SetMeta("DeleteUser.Delete.NotDeleted")
 		return
 	} else if result.RowsAffected < 1 {
-		c.JSON(http.StatusNotFound, routes.CreateErrorResponse("User not found"))
-		log.Printf("Failed to find document: %v", result.Error)
+		c.Error(result.Error).SetMeta("DeleteUser.Delete.NotFound")
+		c.AbortWithError(http.StatusNotFound, e.UserNotFound{}).SetMeta("DeleteUser.Delete.NotFound")
 		return
 	}
 

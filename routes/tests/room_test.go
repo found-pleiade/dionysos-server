@@ -30,7 +30,7 @@ var roomCreateRequest = utils.Request{Method: http.MethodPost, Target: roomURL, 
 
 // TestCreateRoom tests the CreateRoom function.
 func TestCreateRoom(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -65,7 +65,7 @@ func TestCreateRoom(t *testing.T) {
 
 // TestGetRoom tests the GetRoom function.
 func TestGetRoom(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -85,7 +85,7 @@ func TestGetRoom(t *testing.T) {
 		CreateRequestHeaders: headers,
 		SubTests: []utils.SubTest{
 			{Name: "Success", Request: utils.Request{Method: method, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"test"` + suffix},
-			{Name: "Invalid ID", Request: utils.Request{Method: method, Target: "abc", Headers: headers}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
+			{Name: "Invalid ID", Request: utils.Request{Method: method, Target: "abc", Headers: headers}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid ID"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, Target: "987654321", Headers: headers}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
 	}
@@ -94,7 +94,7 @@ func TestGetRoom(t *testing.T) {
 
 // TestUpdateRoom tests the UpdateRoom function.
 func TestUpdateRoom(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -128,7 +128,7 @@ func TestUpdateRoom(t *testing.T) {
 			{Name: "More than max caracters", Request: utils.Request{Method: method, Headers: headers, Body: `{"name":"xxxxxxxxxxxxxxxxxxxxx"}`}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":".+"}`},
 			{Name: "Exactly max caracters", Request: utils.Request{Method: method, Headers: headers, Body: `{"name":"xxxxxxxxxxxxxxxxxxxx"}`}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
 			{Name: "Correctly updated", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: `{"name":"xxxxxxxxxxxxxxxxxxxx"` + suffix},
-			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
+			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc"}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid ID"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321", Body: `{"name":"test2"}`}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
 	}
@@ -137,7 +137,7 @@ func TestUpdateRoom(t *testing.T) {
 
 // TestConnectRoom tests the ConnectUserToRoom function.
 func TestConnectRoom(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -160,7 +160,7 @@ func TestConnectRoom(t *testing.T) {
 			{Name: "Success", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: regex},
 			{Name: "Connect 2nd time", Request: utils.Request{Target: target, Method: method, Headers: headers}, ResponseCode: http.StatusConflict, ResponseBodyRegex: `{"error":"User already in room"}`},
 			{Name: "Not added 2nd time", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusOK, ResponseBodyRegex: regex},
-			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc" + target}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
+			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc" + target}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid ID"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321" + target}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 		},
 	}
@@ -169,7 +169,7 @@ func TestConnectRoom(t *testing.T) {
 
 // TestDisconnectRoom tests the DisconnectUserFromRoom function.
 func TestDisconnectRoom(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -187,7 +187,7 @@ func TestDisconnectRoom(t *testing.T) {
 		CreateRequestHeaders: headers,
 		CreateResponse:       CreateResponseRoom{},
 		SubTests: []utils.SubTest{
-			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc" + target}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid room ID"}`},
+			{Name: "Invalid ID", Request: utils.Request{Method: method, Headers: headers, Target: "abc" + target}, ResponseCode: http.StatusBadRequest, ResponseBodyRegex: `{"error":"Invalid ID"}`},
 			{Name: "Not found", Request: utils.Request{Method: method, Headers: headers, Target: "987654321" + target}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
 			{Name: "Success", Request: utils.Request{Target: target, Method: method, Headers: headers}, ResponseCode: http.StatusNoContent, ResponseBodyRegex: ``},
 			{Name: "Room should be deleted", Request: utils.Request{Method: http.MethodGet, Headers: headers}, ResponseCode: http.StatusNotFound, ResponseBodyRegex: `{"error":"Room not found"}`},
@@ -203,7 +203,7 @@ func TestDisconnectRoom(t *testing.T) {
 // — A disconnects, the ownership is transferred to B.
 // — B disconnects, the room is deleted.
 func TestRoomScenarioA(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}
@@ -260,7 +260,7 @@ func TestRoomScenarioA(t *testing.T) {
 // - A tries to kick B, it is accepted.
 // - A tries to kick himself, it is refused.
 func TestRoomScenarioB(t *testing.T) {
-	err := database.MigrateDB(database.DB, true)
+	err := database.MigrateDB(database.GetDB(), true)
 	if err != nil {
 		t.Error(err)
 	}

@@ -23,7 +23,6 @@ type TestCreate struct {
 
 // Runs a series of tests for the Create type endpoint.
 func (test TestCreate) Run(t *testing.T) {
-	disableLogs()
 	var headers []Header
 
 	for _, subtest := range test.SubTests {

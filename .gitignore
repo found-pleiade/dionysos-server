@@ -16,3 +16,7 @@ coverage.txt
 
 # Output of air, hotreloading of gin
 tmp/
+
+
+# Logs
+dionysos.logs
