@@ -18,16 +18,21 @@ type Room struct {
 	Name      string       `json:"name" binding:"required,gte=2,lte=20" example:"BirthdayParty"`
 	OwnerID   uint64       `json:"ownerID"`
 	Users     []User       `json:"users" gorm:"many2many:room_users"`
+	MediaURL  string       `json:"mediaURL"`
+	Pause     bool         `json:"pause"`
+	Timestamp uint64       `json:"timestamp"`
 }
 
 type RoomUpdate struct {
-	Name string `json:"name,omitempty" binding:"gte=2,lte=20" example:"BirthdayParty"`
+	Name     string `json:"name,omitempty" binding:"gte=2,lte=20" example:"BirthdayParty"`
+	MediaURL string `json:"mediaURL,omitempty" binding:"gt=0" example:"https://www.youtube.com/watch?v=dQw4w9WgXcQ"`
 }
 
 // ToRoom converts a RoomUpdate to a Room
 func (ru *RoomUpdate) ToRoom() *Room {
 	return &Room{
-		Name: ru.Name,
+		Name:     ru.Name,
+		MediaURL: ru.MediaURL,
 	}
 }
 

@@ -58,7 +58,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 ```
 
-Add a `.env` (check the one in the repo) along with this `docker-compose.yaml`. We recommend to change default passwords.
+Add a `.env` (check the one in the repository) along with this `docker-compose.yaml`. We recommend to change default passwords.
 
 ## I want to participate 🍵
 First of all you can:
