@@ -17,6 +17,7 @@ const (
 	roomNotDeleted       = "room not deleted"
 	streamNotCreated     = "stream not created"
 	ownerCantKickHimself = "cannot kick owner from room"
+	noMedia              = "No media defined in room"
 )
 
 type FailJSONBind struct{}
@@ -35,6 +36,7 @@ type RoomNotDeleted struct{}
 type UserAlreadyInRoom struct{}
 type StreamNotCreated struct{}
 type OwnerCantKickHimself struct{}
+type NoMedia struct{}
 
 func (e FailJSONBind) Error() string {
 	return failJSONBind
@@ -83,4 +85,8 @@ func (e StreamNotCreated) Error() string {
 }
 func (e OwnerCantKickHimself) Error() string {
 	return ownerCantKickHimself
+}
+
+func (e NoMedia) Error() string {
+	return noMedia
 }

@@ -106,7 +106,7 @@ func GetRoom(c *gin.Context) {
 }
 
 // UpdateRoom godoc
-// @Summary      Updates a room.
+// @Summary      Updates a room. See RoomUpdate object for more information.
 // @Tags         Rooms
 // @Security     BasicAuth
 // @Accept       json
@@ -398,6 +398,51 @@ func KickUserFromRoom(c *gin.Context) {
 		c.Error(err).SetMeta("KickUserFromRoom.RemoveUser")
 		c.AbortWithError(http.StatusInternalServerError, e.RoomNotModified{}).SetMeta("KickUserFromRoom.RemoveUser")
 		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}
+
+// Play godoc
+// @Summary      Play the media for all users in room.
+// @Tags         Rooms
+// @Security     BasicAuth
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "Invalid user in auth method"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /rooms/{id}/play [post]
+func Play(c *gin.Context) {
+	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
+	defer cancelCtx()
+
+	room, err := routes.ExtractRoomFromContext(c)
+	if err != nil {
+		c.Error(err).SetMeta("Play.ExtractRoomFromContext")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotInContext{}).SetMeta("Play.ExtractRoomFromContext")
+		return
+	}
+
+	// Assert that the room has a media.
+	if room.MediaURL == "" {
+		c.AbortWithError(http.StatusBadRequest, e.NoMedia{}).SetMeta("Play.NoMedia")
+		return
+	}
+
+	room.Pause = false
+	err = db.WithContext(ctx).Save(&room).Error
+	if err != nil {
+		c.Error(err).SetMeta("Play.Save")
+		c.AbortWithError(http.StatusInternalServerError, e.RoomNotModified{}).SetMeta("Play.Save")
+		return
+	}
+
+	stream, err := utils.GetStream(room.ID, roomStreamsList)
+	if err != nil {
+		l.Logger.Warnf("Failed to get stream: %v", err)
+	} else {
+		stream.Distribute(SSEMessage)
 	}
 
 	c.JSON(http.StatusNoContent, nil)
