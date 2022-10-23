@@ -139,7 +139,7 @@ func UpdateRoom(c *gin.Context) {
 	}
 
 	// Check if requester is the owner of the room
-	err = routes.AssertUser(c, room.OwnerID)
+	err = routes.AssertUserIsOwner(c, room.OwnerID)
 	if err != nil {
 		return
 	}
@@ -380,7 +380,7 @@ func KickUserFromRoom(c *gin.Context) {
 	}
 
 	// Check if requester is the owner of the room.
-	err = routes.AssertUser(c, room.OwnerID)
+	err = routes.AssertUserIsOwner(c, room.OwnerID)
 	if err != nil {
 		return
 	}

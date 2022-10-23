@@ -22,7 +22,7 @@ type CreateResponse struct {
 // AssertUser compares the ID of the authenticated user in context and the ID of the room owner.
 // It returns an error if the user is not the owner of the room.
 // It also sets the JSON response so caller only needs to return if an error is returned.
-func AssertUser(c *gin.Context, expectedID uint64) error {
+func AssertUserIsOwner(c *gin.Context, expectedID uint64) error {
 	user, err := ExtractUserFromContext(c)
 	if err != nil {
 		c.Error(err).SetMeta("AssertUser.ExtractUserFromContext")

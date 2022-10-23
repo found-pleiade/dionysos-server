@@ -126,7 +126,7 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	// Assert the request is coming from the right user.
-	if err := routes.AssertUser(c, id); err != nil {
+	if err := routes.AssertUserIsOwner(c, id); err != nil {
 		return
 	}
 
@@ -180,7 +180,7 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	// Assert the request is coming from the right user.
-	if err := routes.AssertUser(c, id); err != nil {
+	if err := routes.AssertUserIsOwner(c, id); err != nil {
 		return
 	}
 
