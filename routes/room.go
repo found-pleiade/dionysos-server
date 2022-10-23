@@ -404,7 +404,7 @@ func KickUserFromRoom(c *gin.Context) {
 }
 
 // Play godoc
-// @Summary      Play the media for all users in room.
+// @Summary      Plays the media for all users in room.
 // @Tags         Rooms
 // @Security     BasicAuth
 // @Success      204
@@ -414,6 +414,24 @@ func KickUserFromRoom(c *gin.Context) {
 // @Failure      500 {object} utils.ErrorResponse "Internal server error"
 // @Router       /rooms/{id}/play [post]
 func Play(c *gin.Context) {
+	switchPause(c, false)
+}
+
+// Play godoc
+// @Summary      Stops the media for all users in room.
+// @Tags         Rooms
+// @Security     BasicAuth
+// @Success      204
+// @Failure      400 {object} utils.ErrorResponse "Invalid request"
+// @Failure      401 {object} utils.ErrorResponse "User not authorized"
+// @Failure      404 {object} utils.ErrorResponse "Invalid user in auth method"
+// @Failure      500 {object} utils.ErrorResponse "Internal server error"
+// @Router       /rooms/{id}/pause [post]
+func Pause(c *gin.Context) {
+	switchPause(c, true)
+}
+
+func switchPause(c *gin.Context, pause bool) {
 	ctx, cancelCtx := context.WithTimeout(c, 1000*time.Millisecond)
 	defer cancelCtx()
 
@@ -430,7 +448,7 @@ func Play(c *gin.Context) {
 		return
 	}
 
-	room.Pause = false
+	room.Pause = pause
 	err = db.WithContext(ctx).Save(&room).Error
 	if err != nil {
 		c.Error(err).SetMeta("Play.Save")

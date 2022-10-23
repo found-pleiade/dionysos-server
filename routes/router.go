@@ -89,6 +89,7 @@ func SetupRouter(router *gin.Engine) *gin.Engine {
 			roomRouter.PATCH("/:id/disconnect", DisconnectUserFromRoom)
 			roomRouter.PATCH("/:id/kick/:userid", KickUserFromRoom)
 			roomRouter.POST("/:id/play", Play)
+			roomRouter.POST("/:id/pause", Pause)
 		}
 	}
 
